@@ -57,5 +57,16 @@ CREATE TABLE BOOK (
 CREATE TABLE MOVIE (
     media_id INTEGER PRIMARY KEY REFERENCES MEDIA(id),
     director CHAR(80),
-    publisher CHAR(80)
+    publisher CHAR(80),
+    genre CHAR(80),
+    duration_seconds INTEGER CHECK (duration_seconds > 0)
+);
+
+-- Create MUSIC table
+CREATE TABLE MUSIC (
+    media_id INTEGER PRIMARY KEY REFERENCES MEDIA(id),
+    artist CHAR(80),
+    album CHAR(80),
+    genre CHAR(80),
+    duration_seconds INTEGER CHECK (duration_seconds > 0)
 );
