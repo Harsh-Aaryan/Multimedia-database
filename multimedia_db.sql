@@ -1,21 +1,19 @@
--- Create the database itself (uncomment to create for the first time)
--- CREATE DATABASE multimedia_db
---     WITH
---     OWNER = postgres
---     ENCODING = 'UTF8'
---     LC_COLLATE = 'English_United States.1252'
---     LC_CTYPE = 'English_United States.1252'
---     LOCALE_PROVIDER = 'libc'
---     TABLESPACE = pg_default
---     CONNECTION LIMIT = -1
---     IS_TEMPLATE = False;
+\c postgres
 
--- Empty the database (so you don't have to keep deleting and recreating manually)
-DROP TABLE IF EXISTS BOOK CASCADE;
-DROP TABLE IF EXISTS MOVIE CASCADE;
-DROP TABLE IF EXISTS RENTING CASCADE;
-DROP TABLE IF EXISTS MEDIA CASCADE;
-DROP TABLE IF EXISTS USER_DATA CASCADE;
+DROP DATABASE IF EXISTS multimedia_db;
+
+CREATE DATABASE multimedia_db
+    WITH OWNER = postgres
+    ENCODING = 'UTF8'
+    -- LC_COLLATE = 'English_United States.1252'
+    -- LC_CTYPE = 'English_United States.1252'
+    -- LOCALE_PROVIDER = 'libc'
+    TABLESPACE = pg_default
+    CONNECTION LIMIT = -1
+    IS_TEMPLATE = False
+;
+
+\c multimedia_db
 
 
 -- Create USER_DATA table
