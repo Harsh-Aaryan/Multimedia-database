@@ -16,8 +16,7 @@ CREATE DATABASE multimedia_db
 \c multimedia_db
 
 
--- Create USER_DATA table
-CREATE TABLE USER_DATA (
+CREATE TABLE user_data (
     id INTEGER PRIMARY KEY,
     username CHAR(80) NOT NULL,
     email CHAR(80),
@@ -25,44 +24,39 @@ CREATE TABLE USER_DATA (
     access_level INTEGER
 );
 
--- Create MEDIA table
-CREATE TABLE MEDIA (
+CREATE TABLE media (
     id INTEGER PRIMARY KEY,
     title CHAR(80) NOT NULL,
     time_added_posix INTEGER NOT NULL,
     release_year INTEGER
 );
 
--- Create RENTING table
-CREATE TABLE RENTING (
+CREATE TABLE renting (
     id INTEGER PRIMARY KEY,
-    user_id INTEGER REFERENCES USER_DATA(id),
-    media_id INTEGER REFERENCES MEDIA(id),
+    user_id INTEGER REFERENCES user_data(id),
+    media_id INTEGER REFERENCES media(id),
     start_time_posix INTEGER NOT NULL,
     end_time_posix INTEGER,
     CHECK (end_time_posix > start_time_posix)
 );
 
--- Create BOOK table
-CREATE TABLE BOOK (
-    media_id INTEGER PRIMARY KEY REFERENCES MEDIA(id),
+CREATE TABLE book (
+    media_id INTEGER PRIMARY KEY REFERENCES media(id),
     author CHAR(80),
     publisher CHAR(80),
     isbn INTEGER NOT NULL UNIQUE
 );
 
--- Create MOVIE table
-CREATE TABLE MOVIE (
-    media_id INTEGER PRIMARY KEY REFERENCES MEDIA(id),
+CREATE TABLE movie (
+    media_id INTEGER PRIMARY KEY REFERENCES media(id),
     director CHAR(80),
     publisher CHAR(80),
     genre CHAR(80),
     duration_seconds INTEGER CHECK (duration_seconds > 0)
 );
 
--- Create MUSIC table
-CREATE TABLE MUSIC (
-    media_id INTEGER PRIMARY KEY REFERENCES MEDIA(id),
+CREATE TABLE music (
+    media_id INTEGER PRIMARY KEY REFERENCES media(id),
     artist CHAR(80),
     album CHAR(80),
     genre CHAR(80),
