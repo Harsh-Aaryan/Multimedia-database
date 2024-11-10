@@ -13,7 +13,10 @@ DATABASE_USER = "postgres"
 def main(*args) -> None:
     with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
         with conn.cursor() as cur:
-            pass
+            cur.execute("SELECT * FROM user_data;")
+
+            for record in cur.fetchone():
+                print(record)
 
 
 if __name__ == "__main__":
