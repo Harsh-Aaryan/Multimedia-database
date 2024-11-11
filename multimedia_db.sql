@@ -44,7 +44,7 @@ CREATE TABLE book (
     media_id INTEGER PRIMARY KEY REFERENCES media(id),
     author CHAR(80),
     publisher CHAR(80),
-    isbn INTEGER NOT NULL UNIQUE
+    isbn CHAR(80) NOT NULL UNIQUE
 );
 
 CREATE TABLE movie (

@@ -8,10 +8,10 @@ import sys
 import time
 
 
-def new_media_id() -> int:
+def new_id(source_table: str) -> int:
     with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id FROM media;")
+            cur.execute("SELECT id FROM %s;", (source_table))
 
             existing_ids = [row[0] for row in cur.fetchall()]
 
@@ -22,21 +22,35 @@ def new_media_id() -> int:
     return new_id
 
 
-def new_media(title: str, release_year: int) -> int:
-    media_id = new_media_id()
+def new_user(username: str, email: str, password: str) -> int:
+    user_id = new_id("user_data")
+    creation_time_posix = int(time.time())
+
+    with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO user_data VALUES (%s, %s, %s, %s)",
+                (user_id, username, email, password, 2)
+            )
+
+    return user_id
+
+
+def new_media(title: str, release_year: str) -> int:
+    media_id = new_id("media")
     creation_time_posix = int(time.time())
 
     with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
         with conn.cursor() as cur:
             cur.execute(
                 "INSERT INTO media VALUES (%s, %s, %s, %s)",
-                (media_id, title, creation_time_posix, release_year)
+                (media_id, title, creation_time_posix, int(release_year))
             )
 
     return media_id
 
 
-def new_book(title: str, release_year: int, author: str, publisher: str, isbn: int) -> int:
+def new_book(title: str, release_year: str, author: str, publisher: str, isbn: str) -> int:
     book_id = new_media(title, release_year)
 
     with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
@@ -49,27 +63,27 @@ def new_book(title: str, release_year: int, author: str, publisher: str, isbn: i
     return book_id
 
 
-def new_movie(title: str, release_year: int, director: str, publisher: str, genre: str, duration_seconds: int) -> int:
+def new_movie(title: str, release_year: str, director: str, publisher: str, genre: str, duration_seconds: str) -> int:
     movie_id = new_media(title, release_year)
 
     with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
         with conn.cursor() as cur:
             cur.execute(
                 "INSERT INTO movie VALUES (%s, %s, %s, %s, %s)",
-                (movie_id, director, publisher, genre, duration_seconds)
+                (movie_id, director, publisher, genre, int(duration_seconds))
             )
 
     return movie_id
 
 
-def new_music(title: str, release_year: int, artist: str, album: str, genre: str, duration_seconds: int) -> int:
+def new_music(title: str, release_year: str, artist: str, album: str, genre: str, duration_seconds: str) -> int:
     music_id = new_media(title, release_year)
 
     with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
         with conn.cursor() as cur:
             cur.execute(
                 "INSERT INTO music VALUES (%s, %s, %s, %s, %s)",
-                (music_id, artist, album, genre, duration_seconds)
+                (music_id, artist, album, genre, int(duration_seconds))
             )
 
     return music_id
@@ -86,8 +100,11 @@ def main(*args) -> None:
         case "music":
             print(new_music(*args[2:]))
 
+        case "media":
+            print(new_media(*args[1:]))
+
         case _:
-            print(new_media(*args[2:]))
+            print("<help>")
 
 
 if __name__ == "__main__":
