@@ -18,15 +18,15 @@ CREATE DATABASE multimedia_db
 
 CREATE TABLE user_data (
     id INTEGER PRIMARY KEY,
-    username VARCHAR(80) NOT NULL,
-    email VARCHAR(80),
-    password VARCHAR(80) NOT NULL,
+    username VARCHAR(1024) NOT NULL,
+    email VARCHAR(1024),
+    password VARCHAR(1024) NOT NULL,
     access_level INTEGER
 );
 
 CREATE TABLE media (
     id INTEGER PRIMARY KEY,
-    title VARCHAR(80) NOT NULL,
+    title VARCHAR(1024) NOT NULL,
     time_added_posix BIGINT NOT NULL,
     release_year INTEGER
 );
@@ -42,23 +42,23 @@ CREATE TABLE renting (
 
 CREATE TABLE book (
     media_id INTEGER PRIMARY KEY REFERENCES media(id),
-    author VARCHAR(80),
-    publisher VARCHAR(80),
+    author VARCHAR(1024),
+    publisher VARCHAR(1024),
     isbn INTEGER NOT NULL UNIQUE
 );
 
 CREATE TABLE movie (
     media_id INTEGER PRIMARY KEY REFERENCES media(id),
-    director VARCHAR(80),
-    publisher VARCHAR(80),
-    genre VARCHAR(80),
+    director VARCHAR(1024),
+    publisher VARCHAR(1024),
+    genre VARCHAR(1024),
     duration_seconds INTEGER CHECK (duration_seconds > 0)
 );
 
 CREATE TABLE music (
     media_id INTEGER PRIMARY KEY REFERENCES media(id),
-    artist VARCHAR(80),
-    album VARCHAR(80),
-    genre VARCHAR(80),
+    artist VARCHAR(1024),
+    album VARCHAR(1024),
+    genre VARCHAR(1024),
     duration_seconds INTEGER CHECK (duration_seconds > 0)
 );
