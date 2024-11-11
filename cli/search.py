@@ -14,7 +14,6 @@ def search(table: str, column: str, value: str, output_columns: str="*") -> list
             return cur.fetchall()
 
 
-# ./search.py $table $field $value
 def main(*args) -> None:
     print(search(*args[1:]))
 
