@@ -6,13 +6,17 @@ import psycopg
 import sys
 
 
-# ./search.py $table $field $value
-def main(*args) -> None:
+def search(table: str, column: str, value: str, output_columns: str="*") -> list[tuple]:
     with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
         with conn.cursor() as cur:
-            cur.execute(f"SELECT * FROM {args[1]} WHERE {args[2]} = %s;", (args[3],))
+            cur.execute(f"SELECT {output_columns} FROM {table} WHERE {column} = %s;", (value,))
 
-            print(cur.fetchall())
+            return cur.fetchall()
+
+
+# ./search.py $table $field $value
+def main(*args) -> None:
+    print(search(*args[1:]))
 
 
 if __name__ == "__main__":
