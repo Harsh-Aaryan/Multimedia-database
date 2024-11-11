@@ -11,7 +11,7 @@ import time
 def new_id(source_table: str) -> int:
     with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id FROM %s;", (source_table))
+            cur.execute(f"SELECT id FROM {source_table};")
 
             existing_ids = [row[0] for row in cur.fetchall()]
 
@@ -91,6 +91,9 @@ def new_music(title: str, release_year: str, artist: str, album: str, genre: str
 
 def main(*args) -> None:
     match args[1]:
+        case "user":
+            print(new_user(*args[2:]))
+
         case "book":
             print(new_book(*args[2:]))
 
@@ -101,7 +104,7 @@ def main(*args) -> None:
             print(new_music(*args[2:]))
 
         case "media":
-            print(new_media(*args[1:]))
+            print(new_media(*args[2:]))
 
         case _:
             print("<help>")
