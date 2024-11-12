@@ -9,15 +9,17 @@ import time
 
 
 def new_id(source_table: str) -> int:
+    new_id = None
+
     with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
         with conn.cursor() as cur:
-            cur.execute(f"SELECT id FROM {source_table};")
-
-            existing_ids = [row[0] for row in cur.fetchall()]
-
-    new_id = None
-    while new_id == None or new_id in existing_ids:
-        new_id = random.randrange(POSTGRES_MAX_INTEGER_SIZE)
+            while True:
+                try:
+                    new_id = random.randrange(POSTGRES_MAX_INTEGER_SIZE)
+                    cur.execute(f"INSERT INTO {source_table}(id) VALUES (%s);", (new_id,))
+                    break
+                except psycopg.errors.UniqueViolation:
+                    pass
 
     return new_id
 
@@ -29,8 +31,8 @@ def new_user(username: str, email: str, password: str) -> int:
     with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO user_data VALUES (%s, %s, %s, %s)",
-                (user_id, username, email, password, 2)
+                "UPDATE user_data SET username = %s, email = %s, password = %s, access_level = %s WHERE id = %s;",
+                (username, email, password, 2, user_id)
             )
 
     return user_id
@@ -38,13 +40,13 @@ def new_user(username: str, email: str, password: str) -> int:
 
 def new_media(title: str, release_year: str) -> int:
     media_id = new_id("media")
-    creation_time_posix = int(time.time())
+    time_added_posix = int(time.time())
 
     with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO media VALUES (%s, %s, %s, %s)",
-                (media_id, title, creation_time_posix, int(release_year))
+                "UPDATE media SET title = %s, time_added_posix = %s, release_year = %s WHERE id = %s",
+                (title, time_added_posix, int(release_year), media_id)
             )
 
     return media_id

@@ -18,16 +18,16 @@ CREATE DATABASE multimedia_db
 
 CREATE TABLE user_data (
     id INTEGER PRIMARY KEY,
-    username CHAR(80) NOT NULL,
+    username CHAR(80),
     email CHAR(80),
-    password CHAR(80) NOT NULL,
+    password CHAR(80),
     access_level INTEGER
 );
 
 CREATE TABLE media (
     id INTEGER PRIMARY KEY,
-    title CHAR(80) NOT NULL,
-    time_added_posix INTEGER NOT NULL,
+    title CHAR(80),
+    time_added_posix INTEGER,
     release_year INTEGER
 );
 
