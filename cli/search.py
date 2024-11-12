@@ -42,6 +42,8 @@ def formatted_search(query: str, return_only_id: bool=False) -> list[tuple]:
         "query": query[query.index(":") + 1:]
     }
 
+    values["table"] = TABLE_MAPPING[values["table"]]
+
     return _search(values["table"], values["column"], values["query"], return_only_id)
 
 
