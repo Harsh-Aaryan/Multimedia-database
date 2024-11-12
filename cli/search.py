@@ -16,7 +16,7 @@ def search(table: str, column: str, query: str, return_only_id: bool=False) -> l
         formatted_query = formatted_query.format(
             psycopg.sql.Identifier(table),
             psycopg.sql.Identifier(column),
-            f"%%{query}%%"
+            f"%{query}%"
         )
 
     else:
@@ -24,7 +24,7 @@ def search(table: str, column: str, query: str, return_only_id: bool=False) -> l
         formatted_query = formatted_query.format(
             psycopg.sql.Identifier(table),
             psycopg.sql.Identifier(column),
-            f"%%{query}%%"
+            f"%{query}%"
         )
 
 
