@@ -105,24 +105,24 @@ def main(*args) -> None:
     for a in args[1:]:
         values = {
             "table": a.split(":")[0],
-            "tuple": ":".join(a.split(":")[1:]).split(";")
+            "tuple": ".".join(a.split(":")[1:]).split(";")
         }
 
         match values["table"]:
             case "user":
-                print(new_user(*values["tuple"]))
+                print(new_user(*values["tuple"]), *[repr(v) for v in values["tuple"]])
 
             case "book":
-                print(new_book(*values["tuple"]))
+                print(new_book(*values["tuple"]), *[repr(v) for v in values["tuple"]])
 
             case "movie":
-                print(new_movie(*values["tuple"]))
+                print(new_movie(*values["tuple"]), *[repr(v) for v in values["tuple"]])
 
             case "music":
-                print(new_music(*values["tuple"]))
+                print(new_music(*values["tuple"]), *[repr(v) for v in values["tuple"]])
 
             case "media":
-                print(new_media(*values["tuple"]))
+                print(new_media(*values["tuple"]), *[repr(v) for v in values["tuple"]])
 
             case _:
                 print("<help>")

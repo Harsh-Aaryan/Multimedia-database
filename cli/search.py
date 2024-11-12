@@ -36,7 +36,13 @@ def search(table: str, column: str, query: str, return_only_id: bool=False) -> l
 
 
 def main(*args) -> None:
-    print(search(*args[1:]))
+    values = {
+        "table": args[1].split(".")[0],
+        "column": args[1].split(".")[1].split(":")[0],
+        "query": ":".join(args[1].split(":")[1:])
+    }
+
+    print(search(values["table"], values["column"], values["query"]))
 
 
 if __name__ == "__main__":
