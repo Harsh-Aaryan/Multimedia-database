@@ -16,8 +16,16 @@ def new_id(source_table: str) -> int:
             while True:
                 try:
                     new_id = random.randrange(POSTGRES_MAX_INTEGER_SIZE)
-                    cur.execute(f"INSERT INTO {source_table}(id) VALUES (%s);", (new_id,))
+
+                    formatted_query = psycopg.sql.SQL("INSERT INTO {0} (id) VALUES ({1})")
+                    formatted_query = formatted_query.format(
+                        psycopg.sql.Identifier(source_table),
+                        new_id
+                    )
+
+                    cur.execute(formatted_query.as_string())
                     break
+
                 except psycopg.errors.UniqueViolation:
                     pass
 
