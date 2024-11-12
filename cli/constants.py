@@ -1,3 +1,8 @@
+CONFIG_PATH = "config.json"
+DEFAULT_CONFIG = {
+    "user_id": -1
+}
+
 DATABASE_NAME = "multimedia_db"
 DATABASE_USER = "postgres"
 POSTGRES_MAX_INTEGER_SIZE = 2147483647
