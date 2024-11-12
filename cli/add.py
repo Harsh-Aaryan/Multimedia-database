@@ -2,8 +2,10 @@
 
 
 from constants import *
+import ast
 import psycopg
 import random
+import shlex
 import sys
 import time
 
@@ -100,24 +102,30 @@ def new_music(title: str, release_year: str, artist: str, album: str, genre: str
 
 
 def main(*args) -> None:
-    match args[1]:
-        case "user":
-            print(new_user(*args[2:]))
+    for a in args[1:]:
+        values = {
+            "table": a.split(":")[0],
+            "tuple": ":".join(a.split(":")[1:]).split(";")
+        }
 
-        case "book":
-            print(new_book(*args[2:]))
+        match values["table"]:
+            case "user":
+                print(new_user(*values["tuple"]))
 
-        case "movie":
-            print(new_movie(*args[2:]))
+            case "book":
+                print(new_book(*values["tuple"]))
 
-        case "music":
-            print(new_music(*args[2:]))
+            case "movie":
+                print(new_movie(*values["tuple"]))
 
-        case "media":
-            print(new_media(*args[2:]))
+            case "music":
+                print(new_music(*values["tuple"]))
 
-        case _:
-            print("<help>")
+            case "media":
+                print(new_media(*values["tuple"]))
+
+            case _:
+                print("<help>")
 
 
 if __name__ == "__main__":
