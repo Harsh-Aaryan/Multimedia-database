@@ -6,7 +6,7 @@ import psycopg
 import sys
 
 
-def search(table: str, column: str, query: str, return_only_id: bool=False) -> list[tuple]:
+def _search(table: str, column: str, query: str, return_only_id: bool=False) -> list[tuple]:
     query = query.lower()
 
     formatted_query = None
@@ -35,14 +35,18 @@ def search(table: str, column: str, query: str, return_only_id: bool=False) -> l
             return cur.fetchall()
 
 
-def main(*args) -> None:
+def formatted_search(query: str, return_only_id: bool=False) -> list[tuple]:
     values = {
-        "table": args[1].split(".")[0],
-        "column": args[1].split(".")[1].split(":")[0],
-        "query": ":".join(args[1].split(":")[1:])
+        "table": query[:query.index(".")],
+        "column": query[query.index(".") + 1:query.index(":")],
+        "query": query[query.index(":") + 1:]
     }
 
-    print(search(values["table"], values["column"], values["query"]))
+    return _search(values["table"], values["column"], values["query"], return_only_id)
+
+
+def main(*args) -> None:
+    print(formatted_search(*args[1:]))
 
 
 if __name__ == "__main__":

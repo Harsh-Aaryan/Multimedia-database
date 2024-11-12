@@ -55,8 +55,8 @@ def new_media(title: str, release_year: str) -> int:
     with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "UPDATE media SET title = %s, time_added_posix = %s, release_year = %s WHERE id = %s",
-                (title, time_added_posix, int(release_year), media_id)
+                "UPDATE media SET time_added_posix = %s, title = %s, release_year = %s WHERE id = %s",
+                (time_added_posix, title, int(release_year), media_id)
             )
 
     return media_id
