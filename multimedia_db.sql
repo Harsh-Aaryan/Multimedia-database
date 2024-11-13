@@ -18,16 +18,16 @@ CREATE DATABASE multimedia_db
 
 CREATE TABLE user_data (
     id INTEGER PRIMARY KEY,
-    username CHAR(80),
-    email CHAR(80),
-    password CHAR(80),
+    username VARCHAR(1024) UNIQUE,
+    email VARCHAR(1024) UNIQUE,
+    password VARCHAR(1024),
     access_level INTEGER
 );
 
 CREATE TABLE media (
     id INTEGER PRIMARY KEY,
-    time_added_posix INTEGER,
-    title CHAR(80),
+    time_added_posix BIGINT,
+    title VARCHAR(1024),
     release_year INTEGER
 );
 
@@ -35,31 +35,31 @@ CREATE TABLE renting (
     id INTEGER PRIMARY KEY,
     user_id INTEGER REFERENCES user_data(id) ON DELETE CASCADE,
     media_id INTEGER REFERENCES media(id) ON DELETE SET NULL,
-    start_time_posix INTEGER NOT NULL,
-    end_time_posix INTEGER,
+    start_time_posix BIGINT NOT NULL,
+    end_time_posix BIGINT,
     CHECK (end_time_posix > start_time_posix)
 );
 
 CREATE TABLE book (
     media_id INTEGER PRIMARY KEY REFERENCES media(id) ON DELETE CASCADE,
-    author CHAR(80),
-    publisher CHAR(80),
-    isbn CHAR(80) NOT NULL UNIQUE
+    author VARCHAR(1024),
+    publisher VARCHAR(1024),
+    isbn VARCHAR(32) NOT NULL UNIQUE
 );
 
 CREATE TABLE movie (
     media_id INTEGER PRIMARY KEY REFERENCES media(id) ON DELETE CASCADE,
-    director CHAR(80),
-    publisher CHAR(80),
-    genre CHAR(80),
+    director VARCHAR(1024),
+    publisher VARCHAR(1024),
+    genre VARCHAR(1024),
     duration_seconds INTEGER CHECK (duration_seconds > 0)
 );
 
 CREATE TABLE music (
     media_id INTEGER PRIMARY KEY REFERENCES media(id) ON DELETE CASCADE,
-    artist CHAR(80),
-    album CHAR(80),
-    genre CHAR(80),
+    artist VARCHAR(1024),
+    album VARCHAR(1024),
+    genre VARCHAR(1024),
     duration_seconds INTEGER CHECK (duration_seconds > 0)
 );
 
