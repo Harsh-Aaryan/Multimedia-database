@@ -104,8 +104,8 @@ def new_music(title: str, release_year: str, artist: str, album: str, genre: str
 def main(*args) -> None:
     for a in args[1:]:
         values = {
-            "table": a.split(":")[0],
-            "tuple": ".".join(a.split(":")[1:]).split(";")
+            "table": a[:a.index(":")],
+            "tuple": a[a.index(":") + 1:].split(";")
         }
 
         match values["table"]:
