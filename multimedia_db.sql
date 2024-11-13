@@ -18,8 +18,8 @@ CREATE DATABASE multimedia_db
 
 CREATE TABLE user_data (
     id INTEGER PRIMARY KEY,
-    username VARCHAR(1024) NOT NULL,
-    email VARCHAR(1024),
+    username VARCHAR(1024) UNIQUE NOT NULL,
+    email VARCHAR(1024) UNIQUE NOT NULL,
     password VARCHAR(1024) NOT NULL,
     access_level INTEGER
 );
