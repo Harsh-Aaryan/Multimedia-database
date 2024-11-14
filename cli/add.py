@@ -106,6 +106,8 @@ def main(*args) -> None:
             "tuple": a[a.index(":") + 1:].split(";")
         }
 
+        values["table"] = TABLE_MAPPING[values["table"]]
+
         match values["table"]:
             case "user":
                 print(new_user(*values["tuple"]), *[repr(v) for v in values["tuple"]])

@@ -50,24 +50,32 @@ def _search(table: str, column: str, operator: str, query: str) -> list[tuple]:
             return cur.fetchall()
 
 
-def formatted_search(query: str) -> list[tuple]:
-    operator_index = min(*[query.find(o) * -1 for o in OPERATORS]) * -1
-    operator = query[operator_index]
+def formatted_search(*queries: str) -> list[tuple]:
+    output = set()
 
-    values = {
-        "table": query[:query.index(".")],
-        "column": query[query.index(".") + 1:operator_index],
-        "operation": operator,
-        "query": query[operator_index + 1:]
-    }
+    for query in queries:
+        operator_index = min(*[query.find(o) * -1 for o in OPERATORS]) * -1
+        operator = query[operator_index]
 
-    values["table"] = TABLE_MAPPING[values["table"]]
+        values = {
+            "table": query[:query.index(".")],
+            "column": query[query.index(".") + 1:operator_index],
+            "operation": operator,
+            "query": query[operator_index + 1:]
+        }
 
-    return _search(values["table"], values["column"], values["operation"], values["query"])
+        values["table"] = TABLE_MAPPING[values["table"]]
+        values["column"] = COLUMN_MAPPING[values["column"]]
+
+        result = set(_search(values["table"], values["column"], values["operation"], values["query"]))
+        output = output.union(result)
+
+    return sorted(list(output))
 
 
 def main(*args) -> None:
-    print(formatted_search(*args[1:]))
+    for result in formatted_search(*args[1:]):
+        print(result)
 
 
 if __name__ == "__main__":
