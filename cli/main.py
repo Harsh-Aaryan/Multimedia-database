@@ -15,7 +15,7 @@ RETURN_TIME_SECONDS = 60 * 60 * 24 * RETURN_TIME_DAYS
 TABLE_MAPPING = {
     "account": "user_data",
     "book": "full_book",
-    "checked-out": "renting",
+    "checked-out": "full_renting",
     "media": "media",
     "movie": "full_movie",
     "music": "full_music"
@@ -91,7 +91,7 @@ class Client:
 
     def new_user(self, username: str, email: str, password: str) -> int:
         user_id = self.new_id("user_data")
-        creation_time_posix = int(time_posix)
+        creation_time_posix = time_posix()
 
         with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
             with conn.cursor() as cur:
@@ -105,7 +105,7 @@ class Client:
 
     def new_media(self, title: str, release_year: str) -> int:
         media_id = self.new_id("media")
-        time_added_posix = int(time_posix)
+        time_added_posix = time_posix()
 
         with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
             with conn.cursor() as cur:
@@ -219,7 +219,7 @@ class Client:
                     psycopg.sql.Identifier(column),
                     int(query)
                 )
-        print(formatted_query.as_string())
+
         with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
             with conn.cursor() as cur:
                 cur.execute(formatted_query.as_string())
@@ -237,7 +237,7 @@ class Client:
                 queries = [f"checked-out.user-id={self.account_id}"]
 
             case "overdue":
-                queries = ["-i", f"checked-out.user-id={self.account_id}", f"checked-out.date-returned={POSTGRES_MAX_BIGINT_SIZE}", f"checked-out.date-due<{int(time_posix)}"]
+                queries = ["-i", f"checked-out.user-id={self.account_id}", f"checked-out.date-returned={POSTGRES_MAX_BIGINT_SIZE}", f"checked-out.date-due<{time_posix()}"]
 
         intersection = False
         if "-i" in queries:
@@ -274,6 +274,8 @@ class Client:
 
 
     def checkout(self, *args: str) -> None:
+        checkout_time = time_posix()
+
         checkout_queue = self.formatted_search(*args[1:])
 
         for i, result in enumerate(checkout_queue):
@@ -289,7 +291,7 @@ class Client:
 
                     cur.execute(
                         "UPDATE renting SET user_id = %s, media_id = %s, start_time_posix = %s, end_time_posix = %s, time_returned_posix = %s;",
-                        (self.account_id, result[0], time_posix, time_posix + RETURN_TIME_SECONDS, POSTGRES_MAX_BIGINT_SIZE)
+                        (self.account_id, result[0], checkout_time, checkout_time + RETURN_TIME_SECONDS, POSTGRES_MAX_BIGINT_SIZE)
                     )
 
 

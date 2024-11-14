@@ -65,6 +65,12 @@ CREATE TABLE music (
 );
 
 
+CREATE VIEW full_renting AS
+    SELECT r.id, r.start_time_posix, r.end_time_posix, r.time_returned_posix, u.id AS user_id, u.username, u.email AS user_email, m.id AS media_id, m.time_added_posix, m.title, m.release_year
+    FROM user_data AS u JOIN renting AS r ON u.id = r.user_id JOIN media AS m ON r.media_id = m.id
+;
+
+
 CREATE VIEW full_book AS
     SELECT m.id, m.time_added_posix, m.title, m.release_year, b.author, b.publisher, b.isbn
     FROM media AS m JOIN book AS b ON m.id = b.media_id
