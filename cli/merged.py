@@ -2,10 +2,54 @@
 
 
 from constants import *
+import argparse
+import json
 import psycopg
 import random
 import sys
 import time
+
+
+RETURN_TIME_DAYS = 30
+RETURN_TIME_SECONDS = 60 * 60 * 24 * RETURN_TIME_DAYS
+
+TABLE_MAPPING = {
+    "account": "user_data",
+    "book": "full_book",
+    "media": "media",
+    "movie": "full_movie",
+    "music": "full_music"
+}
+
+COLUMN_MAPPING = {
+    "album": "album",
+    "artist": "artist",
+    "author": "author",
+    "date-added": "time_added_posix",
+    "director": "director",
+    "duration": "duration_seconds",
+    "email": "email",
+    "genre": "genre",
+    "id": "id",
+    "isbn": "isbn",
+    "password": "password",
+    "publisher": "publisher",
+    "release-year": "release_year",
+    "title": "title",
+    "username": "username"
+}
+
+OPERATORS = [   #   Python; SQL
+    ":",        #   in      like
+    "<",        #   <       <
+    "=",        #   ==      =
+    ">"         #   >       >
+]
+
+DATABASE_NAME = "multimedia_db"
+DATABASE_USER = "postgres"
+POSTGRES_MAX_INTEGER_SIZE = 2147483647
+POSTGRES_MAX_BIGINT_SIZE = 9223372036854775807
 
 
 def new_id(source_table: str) -> int:
@@ -99,7 +143,7 @@ def new_music(title: str, release_year: str, artist: str, album: str, genre: str
     return music_id
 
 
-def main(*args) -> None:
+def add(*args) -> None:
     for a in args[1:]:
         values = {
             "table": a[:a.index("=")],
@@ -126,6 +170,105 @@ def main(*args) -> None:
 
             case _:
                 print("<help>")
+
+
+def query_database(table: str, column: str, operator: str, query: str) -> list[tuple]:
+    query = query.lower()
+
+    formatted_query = None
+    match operator:
+        case ":":
+            formatted_query = psycopg.sql.SQL("SELECT * FROM {0} WHERE LOWER ({1}) LIKE {2};")
+            formatted_query = formatted_query.format(
+                psycopg.sql.Identifier(table),
+                psycopg.sql.Identifier(column),
+                f"%{query}%"
+            )
+
+        case "<":
+            formatted_query = psycopg.sql.SQL("SELECT * FROM {0} WHERE {1} < {2};")
+            formatted_query = formatted_query.format(
+                psycopg.sql.Identifier(table),
+                psycopg.sql.Identifier(column),
+                int(query)
+            )
+
+        case "=":
+            formatted_query = psycopg.sql.SQL("SELECT * FROM {0} WHERE {1} = {2};")
+            formatted_query = formatted_query.format(
+                psycopg.sql.Identifier(table),
+                psycopg.sql.Identifier(column),
+                query
+            )
+
+        case ">":
+            formatted_query = psycopg.sql.SQL("SELECT * FROM {0} WHERE {1} > {2};")
+            formatted_query = formatted_query.format(
+                psycopg.sql.Identifier(table),
+                psycopg.sql.Identifier(column),
+                int(query)
+            )
+
+    with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
+        with conn.cursor() as cur:
+            cur.execute(formatted_query.as_string())
+
+            return cur.fetchall()
+
+
+def formatted_search(*queries: str) -> list[tuple]:
+    output = set()
+
+    for query in queries:
+        operator_index = min([query.find(o) for o in OPERATORS if query.find(o) != -1])
+        operator = query[operator_index]
+
+        values = {
+            "table": query[:query.index(".")],
+            "column": query[query.index(".") + 1:operator_index],
+            "operation": operator,
+            "query": query[operator_index + 1:]
+        }
+
+        values["table"] = TABLE_MAPPING[values["table"]]
+        values["column"] = COLUMN_MAPPING[values["column"]]
+
+        result = set(query_database(values["table"], values["column"], values["operation"], values["query"]))
+        output = output.union(result)
+
+    return sorted(list(output))
+
+
+def search(*args) -> None:
+    for result in formatted_search(*args[1:]):
+        print(result)
+
+
+def remove(*args) -> None:
+    deletion_queue = formatted_search(args[1])
+
+    for result in deletion_queue:
+        print(result)
+
+    if input("Do you want to remove this media? [y/n] ") != "y":
+        return
+
+    with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
+        with conn.cursor() as cur:
+            for result in deletion_queue:
+                cur.execute("DELETE FROM media WHERE id = %s;", (result[0],))
+
+
+def main(*args) -> None:
+    match args[1]:
+        case "add":
+            add(*args[1:])
+
+        case "remove":
+            remove(*args[1:])
+
+        case "search":
+            search(*args[1:])
 
 
 if __name__ == "__main__":
