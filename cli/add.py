@@ -2,10 +2,8 @@
 
 
 from constants import *
-import ast
 import psycopg
 import random
-import shlex
 import sys
 import time
 

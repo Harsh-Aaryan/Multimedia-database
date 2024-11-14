@@ -11,6 +11,13 @@ TABLE_MAPPING = {
     "music": "full_music"
 }
 
+OPERATORS = [   #   Python; SQL
+    ":",        #   in      like
+    "<",        #   <       <
+    "=",        #   ==      =
+    ">"         #   >       >
+]
+
 DATABASE_NAME = "multimedia_db"
 DATABASE_USER = "postgres"
 POSTGRES_MAX_INTEGER_SIZE = 2147483647
