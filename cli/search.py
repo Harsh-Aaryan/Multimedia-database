@@ -54,7 +54,7 @@ def formatted_search(*queries: str) -> list[tuple]:
     output = set()
 
     for query in queries:
-        operator_index = min(*[query.find(o) for o in OPERATORS if query.find(o) != -1])
+        operator_index = min([query.find(o) for o in OPERATORS if query.find(o) != -1])
         operator = query[operator_index]
 
         values = {
