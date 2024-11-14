@@ -249,14 +249,34 @@ class Client:
             print(result)
 
 
+    def checkout(self, *args: str) -> None:
+        checkout_queue = self.formatted_search(*args[1:])
+
+        for i, result in enumerate(checkout_queue):
+            print(f"{i}\t{result}")
+
+        if input("Do you want to check out this media [y/n]") != "y":
+            exit(1)
+
+        with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
+            with conn.cursor() as cur:
+                for result in checkout_queue:
+                    renting_id = self.new_id("renting")
+
+                    cur.execute(
+                        "UPDATE renting SET user_id = %s, media_id = %s, start_time_posix = %s, end_time_posix = %s;",
+                        (self.account_id, result[0], time.time(), time.time() + RETURN_TIME_SECONDS)
+                    )
+
+
     def remove(self, *args: str) -> None:
-        deletion_queue = self.formatted_search(args[1])
+        deletion_queue = self.formatted_search(*args[1:])
 
         for result in deletion_queue:
             print(result)
 
         if input("Do you want to remove this media? [y/n] ") != "y":
-            return
+            exit(1)
 
         with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
             with conn.cursor() as cur:
@@ -268,6 +288,9 @@ class Client:
         match args[1]:
             case "add":
                 self.add(*args[1:])
+
+            case "checkout":
+                self.checkout(*args[1:])
 
             case "remove":
                 self.remove(*args[1:])
@@ -309,7 +332,7 @@ def main(*args: str) -> None:
 
                 account = cur.fetchone()
 
-    if "--password" in args:
+    if account != None and "--password" in args:
         password_index = args.index("--password")
         password = args[password_index + 1]
         del args[password_index + 1]

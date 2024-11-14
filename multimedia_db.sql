@@ -35,7 +35,7 @@ CREATE TABLE renting (
     id INTEGER PRIMARY KEY,
     user_id INTEGER REFERENCES user_data(id) ON DELETE CASCADE,
     media_id INTEGER REFERENCES media(id) ON DELETE SET NULL,
-    start_time_posix BIGINT NOT NULL,
+    start_time_posix BIGINT,
     end_time_posix BIGINT,
     CHECK (end_time_posix > start_time_posix)
 );
