@@ -37,7 +37,8 @@ CREATE TABLE renting (
     media_id INTEGER REFERENCES media(id) ON DELETE SET NULL,
     start_time_posix BIGINT,
     end_time_posix BIGINT,
-    CHECK (end_time_posix > start_time_posix)
+    time_returned_posix BIGINT
+    CHECK (end_time_posix > start_time_posix AND time_returned_posix > start_time_posix)
 );
 
 CREATE TABLE book (

@@ -15,6 +15,7 @@ RETURN_TIME_SECONDS = 60 * 60 * 24 * RETURN_TIME_DAYS
 TABLE_MAPPING = {
     "account": "user_data",
     "book": "full_book",
+    "checked-out": "renting",
     "media": "media",
     "movie": "full_movie",
     "music": "full_music"
@@ -25,6 +26,8 @@ COLUMN_MAPPING = {
     "artist": "artist",
     "author": "author",
     "date-added": "time_added_posix",
+    "date-due": "end_time_posix",
+    "date-returned": "time_returned_posix",
     "director": "director",
     "duration": "duration_seconds",
     "email": "email",
@@ -35,6 +38,7 @@ COLUMN_MAPPING = {
     "publisher": "publisher",
     "release-year": "release_year",
     "title": "title",
+    "user-id": "user_id",
     "username": "username"
 }
 
@@ -49,6 +53,10 @@ DATABASE_NAME = "multimedia_db"
 DATABASE_USER = "postgres"
 POSTGRES_MAX_INTEGER_SIZE = 2147483647
 POSTGRES_MAX_BIGINT_SIZE = 9223372036854775807
+
+
+def time_posix() -> int:
+    return int(time.time())
 
 
 class Client:
@@ -83,7 +91,7 @@ class Client:
 
     def new_user(self, username: str, email: str, password: str) -> int:
         user_id = self.new_id("user_data")
-        creation_time_posix = int(time.time())
+        creation_time_posix = int(time_posix)
 
         with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
             with conn.cursor() as cur:
@@ -97,7 +105,7 @@ class Client:
 
     def new_media(self, title: str, release_year: str) -> int:
         media_id = self.new_id("media")
-        time_added_posix = int(time.time())
+        time_added_posix = int(time_posix)
 
         with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
             with conn.cursor() as cur:
@@ -178,8 +186,6 @@ class Client:
 
 
     def query_database(self, table: str, column: str, operator: str, query: str) -> list[tuple]:
-        query = query.lower()
-
         formatted_query = None
         match operator:
             case ":":
@@ -187,7 +193,7 @@ class Client:
                 formatted_query = formatted_query.format(
                     psycopg.sql.Identifier(table),
                     psycopg.sql.Identifier(column),
-                    f"%{query}%"
+                    f"%{query.lower()}%"
                 )
 
             case "<":
@@ -213,7 +219,7 @@ class Client:
                     psycopg.sql.Identifier(column),
                     int(query)
                 )
-
+        print(formatted_query.as_string())
         with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
             with conn.cursor() as cur:
                 cur.execute(formatted_query.as_string())
@@ -222,7 +228,21 @@ class Client:
 
 
     def formatted_search(self, *queries: str) -> list[tuple]:
+        queries = list(queries)
+
         output = set()
+
+        match "".join(queries):
+            case "checked-out":
+                queries = [f"checked-out.user-id={self.account_id}"]
+
+            case "overdue":
+                queries = ["-i", f"checked-out.user-id={self.account_id}", f"checked-out.date-returned={POSTGRES_MAX_BIGINT_SIZE}", f"checked-out.date-due<{int(time_posix)}"]
+
+        intersection = False
+        if "-i" in queries:
+            intersection = True
+            del queries[queries.index("-i")]
 
         for query in queries:
             operator_index = min([query.find(o) for o in OPERATORS if query.find(o) != -1])
@@ -239,7 +259,11 @@ class Client:
             values["column"] = COLUMN_MAPPING[values["column"]]
 
             result = set(self.query_database(values["table"], values["column"], values["operation"], values["query"]))
-            output = output.union(result)
+
+            if output != set() and intersection:
+                output = output.intersection(result)
+            else:
+                output = output.union(result)
 
         return sorted(list(output))
 
@@ -255,7 +279,7 @@ class Client:
         for i, result in enumerate(checkout_queue):
             print(f"{i}\t{result}")
 
-        if input("Do you want to check out this media [y/n]") != "y":
+        if input("Do you want to check out this media [y/n] ") != "y":
             exit(1)
 
         with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
@@ -264,8 +288,8 @@ class Client:
                     renting_id = self.new_id("renting")
 
                     cur.execute(
-                        "UPDATE renting SET user_id = %s, media_id = %s, start_time_posix = %s, end_time_posix = %s;",
-                        (self.account_id, result[0], time.time(), time.time() + RETURN_TIME_SECONDS)
+                        "UPDATE renting SET user_id = %s, media_id = %s, start_time_posix = %s, end_time_posix = %s, time_returned_posix = %s;",
+                        (self.account_id, result[0], time_posix, time_posix + RETURN_TIME_SECONDS, POSTGRES_MAX_BIGINT_SIZE)
                     )
 
 
