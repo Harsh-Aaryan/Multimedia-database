@@ -110,7 +110,7 @@ class Client:
         with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    "UPDATE media SET time_added_posix = %s, title = %s, release_year = %s WHERE id = %s",
+                    "UPDATE media SET time_added_posix = %s, title = %s, release_year = %s WHERE id = %s;",
                     (time_added_posix, title, int(release_year), media_id)
                 )
 
@@ -295,9 +295,24 @@ class Client:
                     renting_id = self.new_id("renting")
 
                     cur.execute(
-                        "UPDATE renting SET user_id = %s, media_id = %s, start_time_posix = %s, end_time_posix = %s, time_returned_posix = %s;",
-                        (self.account_id, result[0], checkout_time, checkout_time + RETURN_TIME_SECONDS, POSTGRES_MAX_BIGINT_SIZE)
+                        "UPDATE renting SET user_id = %s, media_id = %s, start_time_posix = %s, end_time_posix = %s, time_returned_posix = %s WHERE id = %s;",
+                        (self.account_id, result[0], checkout_time, checkout_time + RETURN_TIME_SECONDS, POSTGRES_MAX_BIGINT_SIZE, renting_id)
                     )
+
+
+    def remove(self, *args: str) -> None:
+        deletion_queue = self.formatted_search(*args[1:])
+
+        for result in deletion_queue:
+            print(result)
+
+        if input("Do you want to remove this media? [y/n] ") != "y":
+            exit(1)
+
+        with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
+            with conn.cursor() as cur:
+                for result in deletion_queue:
+                    cur.execute("DELETE FROM media WHERE id = %s;", (result[0],))
 
 
     def return_media(self, *args: str) -> None:
@@ -317,24 +332,45 @@ class Client:
                     renting_id = self.new_id("renting")
 
                     cur.execute(
-                        "UPDATE renting SET time_returned_posix = %s;",
-                        (return_time,)
+                        "UPDATE renting SET time_returned_posix = %s WHERE id = %s;",
+                        (return_time, renting_id)
                     )
 
 
-    def remove(self, *args: str) -> None:
-        deletion_queue = self.formatted_search(*args[1:])
+    def set_value(self, operations: str, *args: str) -> None:
+        selected_tuple = self.formatted_search(*args[1:-1])
 
-        for result in deletion_queue:
-            print(result)
-
-        if input("Do you want to remove this media? [y/n] ") != "y":
+        if len(selected_tuple) > 1:
             exit(1)
 
-        with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
-            with conn.cursor() as cur:
-                for result in deletion_queue:
-                    cur.execute("DELETE FROM media WHERE id = %s;", (result[0],))
+        selected_tuple = selected_tuple[0]
+
+        print(selected_tuple)
+
+        if input("Do you want to modify this tuple [y/n] ") != "y":
+            exit(1)
+
+        for o in operations.split(";"):
+            values = {
+                "table": args[1][:args[1].index(".")],
+                "column": operations[:operations.index("=")],
+                "value": operations[operations.index("=") + 1:]
+            }
+
+            values["table"] = TABLE_MAPPING[values["table"]]
+            values["column"] = COLUMN_MAPPING[values["column"]]
+            print(values)
+            with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
+                with conn.cursor() as cur:
+                    formatted_query = psycopg.sql.SQL("UPDATE {0} SET {1} = {2} WHERE id = {3};")
+                    formatted_query = formatted_query.format(
+                        psycopg.sql.Identifier(values["table"]),
+                        psycopg.sql.Identifier(values["column"]),
+                        values["value"],
+                        selected_tuple[0]
+                    )
+
+                    cur.execute(formatted_query.as_string())
 
 
     def main(self, *args: str) -> None:
@@ -353,6 +389,9 @@ class Client:
 
             case "search":
                 self.search(*args[1:])
+
+            case "set":
+                self.set_value(args[-1], *args[1:])
 
 
 def main(*args: str) -> None:
