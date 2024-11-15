@@ -232,12 +232,17 @@ class Client:
 
         output = set()
 
-        match "".join(queries):
-            case "checked-out":
-                queries = [f"checked-out.user-id={self.account_id}"]
+        if "checked-out" in queries:
+            queries[queries.index("checked-out")] = f"checked-out.user-id={self.account_id}"
 
-            case "overdue":
-                queries = ["-i", f"checked-out.user-id={self.account_id}", f"checked-out.date-returned={POSTGRES_MAX_BIGINT_SIZE}", f"checked-out.date-due<{time_posix()}"]
+        if "overdue" in queries:
+            queries[queries.index("overdue")] = "-i"
+            queries += [
+                f"checked-out.user-id={self.account_id}",
+                f"checked-out.date-returned={POSTGRES_MAX_BIGINT_SIZE}",
+                f"checked-out.date-returned={POSTGRES_MAX_BIGINT_SIZE}",
+                f"checked-out.date-due<{time_posix()}"
+            ]
 
         intersection = False
         if "-i" in queries:
@@ -295,6 +300,28 @@ class Client:
                     )
 
 
+    def return_media(self, *args: str) -> None:
+        return_time = time_posix()
+
+        return_queue = self.formatted_search("checked-out", *args[1:])
+
+        for i, result in enumerate(return_queue):
+            print(f"{i}\t{result}")
+
+        if input("Do you want to return this media [y/n] ") != "y":
+            exit(1)
+
+        with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
+            with conn.cursor() as cur:
+                for result in return_queue:
+                    renting_id = self.new_id("renting")
+
+                    cur.execute(
+                        "UPDATE renting SET time_returned_posix = %s;",
+                        (return_time,)
+                    )
+
+
     def remove(self, *args: str) -> None:
         deletion_queue = self.formatted_search(*args[1:])
 
@@ -320,6 +347,9 @@ class Client:
 
             case "remove":
                 self.remove(*args[1:])
+
+            case "return":
+                self.return_media(*args[1:])
 
             case "search":
                 self.search(*args[1:])
