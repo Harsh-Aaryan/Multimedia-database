@@ -12,6 +12,13 @@ import time
 RETURN_TIME_DAYS = 30
 RETURN_TIME_SECONDS = 60 * 60 * 24 * RETURN_TIME_DAYS
 
+VIEWER_ACCESS_LEVEL = 3
+USER_ACCESS_LEVEL = 2
+ADMIN_ACCESS_LEVEL = 1
+ROOT_ACCESS_LEVEL = 0
+
+ADD_RETRIES = 20
+
 TABLE_MAPPING = {
     "account": "user_data",
     "book": "full_book",
@@ -60,31 +67,57 @@ def time_posix() -> int:
 
 
 class Client:
-    def __init__(self, cursor: psycopg.Cursor, account_id: int=-1, access_level: int=3) -> None:
+    def __init__(self, cursor: psycopg.Cursor, account_id: str=-1, access_level: int=3) -> None:
         self.cursor: psycopg.Cursor = cursor
         self.account_id: int = account_id
         self.access_level: int = access_level
 
 
+    def check_permissions(self, required_access_level: int) -> None:
+        if self.access_level > required_access_level:
+            print("Permission denied")
+            exit(1)
+
+
     def new_id(self, source_table: str) -> int:
         new_id = None
-        while True:
-            try:
-                new_id = random.randrange(POSTGRES_MAX_INTEGER_SIZE)
 
-                formatted_query = psycopg.sql.SQL("INSERT INTO {0} (id) VALUES ({1})")
+        for _ in range(ADD_RETRIES):
+            try:
+                new_id = random.randrange(POSTGRES_MAX_INTEGER_SIZE + 1)
+
+                formatted_query = psycopg.sql.SQL("INSERT INTO {0} (id) VALUES ({1});")
                 formatted_query = formatted_query.format(
                     psycopg.sql.Identifier(source_table),
                     new_id
                 )
 
                 self.cursor.execute(formatted_query.as_string())
-                break
+                return new_id
 
             except psycopg.errors.UniqueViolation:
                 pass
+            except psycopg.errors.InFailedSqlTransaction:
+                pass
 
-        return new_id
+        for i in range(POSTGRES_MAX_INTEGER_SIZE + 1):
+            try:
+                formatted_query = psycopg.sql.SQL("INSERT INTO {0} (id) VALUES ({1});")
+                formatted_query = formatted_query.format(
+                    psycopg.sql.Identifier(source_table),
+                    i
+                )
+
+                self.cursor.execute(formatted_query.as_string())
+                return i
+
+            except psycopg.errors.UniqueViolation:
+                pass
+            except psycopg.errors.InFailedSqlTransaction:
+                pass
+
+        print("Out of media slots")
+        exit(1)
 
 
     def new_user(self, username: str, email: str, password: str) -> int:
@@ -100,6 +133,8 @@ class Client:
 
 
     def new_media(self, title: str, release_year: str) -> int:
+        self.check_permissions(ADMIN_ACCESS_LEVEL)
+
         media_id = self.new_id("media")
         time_added_posix = time_posix()
 
@@ -115,7 +150,7 @@ class Client:
         book_id = self.new_media(title, release_year)
 
         self.cursor.execute(
-            "INSERT INTO book VALUES (%s, %s, %s, %s)",
+            "INSERT INTO book VALUES (%s, %s, %s, %s);",
             (book_id, author, publisher, isbn)
         )
 
@@ -126,7 +161,7 @@ class Client:
         movie_id = self.new_media(title, release_year)
 
         self.cursor.execute(
-            "INSERT INTO movie VALUES (%s, %s, %s, %s, %s)",
+            "INSERT INTO movie VALUES (%s, %s, %s, %s, %s);",
             (movie_id, director, publisher, genre, int(duration_seconds))
         )
 
@@ -137,7 +172,7 @@ class Client:
         music_id = self.new_media(title, release_year)
 
         self.cursor.execute(
-            "INSERT INTO music VALUES (%s, %s, %s, %s, %s)",
+            "INSERT INTO music VALUES (%s, %s, %s, %s, %s);",
             (music_id, artist, album, genre, int(duration_seconds))
         )
 
@@ -218,6 +253,9 @@ class Client:
 
         output = set()
 
+        if "account" in queries:
+            queries[queries.index("account")] = f"account.id={self.account_id}"
+
         if "checked-out" in queries:
             queries[queries.index("checked-out")] = f"checked-out.user-id={self.account_id}"
 
@@ -231,9 +269,13 @@ class Client:
             ]
 
         intersection = False
-        if "-i" in queries:
+        intersection_index = queries.index("--intersection") if "--intersection" in queries else -1
+        intersection_index = queries.index("-i") if intersection_index == -1 and "-i" in queries else -1
+
+        if intersection_index != -1:
             intersection = True
-            del queries[queries.index("-i")]
+            del args[intersection_index + 1]
+            del args[intersection_index]
 
         for query in queries:
             operator_index = min([query.find(o) for o in OPERATORS if query.find(o) != -1])
@@ -248,6 +290,14 @@ class Client:
 
             values["table"] = TABLE_MAPPING[values["table"]]
             values["column"] = COLUMN_MAPPING[values["column"]]
+
+            if ((values["table"] == "user_data" and values["column"] == "id") or values["column"] == "user_id") and values["query"] != str(self.account_id):
+                print("Permission denied")
+                exit(1)
+
+            if values["column"] == "password":
+                print("Permission denied")
+                exit(1)
 
             result = set(self.query_database(values["table"], values["column"], values["operation"], values["query"]))
 
@@ -285,16 +335,23 @@ class Client:
 
 
     def remove(self, *args: str) -> None:
+        if args != ["account"]:
+            self.check_permissions(ADMIN_ACCESS_LEVEL)
+
         deletion_queue = self.formatted_search(*args[1:])
 
         for result in deletion_queue:
             print(result)
 
-        if input("Do you want to remove this media? [y/n] ") != "y":
+        if input("Do you want to remove these entries? [y/n] ") != "y":
             exit(1)
 
         for result in deletion_queue:
-            self.cursor.execute("DELETE FROM media WHERE id = %s;", (result[0],))
+            if result[1] not in [VIEWER_ACCESS_LEVEL, USER_ACCESS_LEVEL, ADMIN_ACCESS_LEVEL, ROOT_ACCESS_LEVEL]:
+                self.cursor.execute("DELETE FROM media WHERE id = %s;", (result[0],))
+
+            else:
+                self.cursor.execute("DELETE FROM user_data WHERE id = %s;", (result[0],))
 
 
     def return_media(self, *args: str) -> None:
@@ -318,16 +375,20 @@ class Client:
 
 
     def set_value(self, operations: str, *args: str) -> None:
+        if args != ["account"] and sorted(args) != ["--intersection", "account"] and sorted(args) != ["-i", "account"] and sorted(args) != ["--intersection", "-i", "account"]:
+            self.check_permissions(ADMIN_ACCESS_LEVEL)
+
         selected_tuple = self.formatted_search(*args[1:-1])
 
         if len(selected_tuple) > 1:
+            print("More than one entry selected")
             exit(1)
 
         selected_tuple = selected_tuple[0]
 
         print(selected_tuple)
 
-        if input("Do you want to modify this tuple [y/n] ") != "y":
+        if input("Do you want to modify this entry [y/n] ") != "y":
             exit(1)
 
         for o in operations.split(";"):
@@ -339,7 +400,6 @@ class Client:
 
             values["table"] = TABLE_MAPPING[values["table"]]
             values["column"] = COLUMN_MAPPING[values["column"]]
-            print(values)
 
             formatted_query = psycopg.sql.SQL("UPDATE {0} SET {1} = {2} WHERE id = {3};")
             formatted_query = formatted_query.format(
@@ -427,6 +487,8 @@ def main(*args: str) -> None:
                 client = Client(cur)
 
             client.main(*args)
+
+            conn.commit()
 
 
 if __name__ == "__main__":
