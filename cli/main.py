@@ -29,6 +29,7 @@ TABLE_MAPPING = {
 }
 
 COLUMN_MAPPING = {
+    "access-level": "access_level",
     "album": "album",
     "artist": "artist",
     "author": "author",
@@ -208,11 +209,11 @@ class Client:
                     print("<help>")
 
 
-    def query_database(self, table: str, column: str, operator: str, query: str) -> list[tuple]:
+    def query_database(self, table: str, column: str, operator: str, query: str, show_checked_out: bool=False) -> list[tuple]:
         formatted_query = None
         match operator:
             case ":":
-                formatted_query = psycopg.sql.SQL("SELECT * FROM {0} WHERE LOWER ({1}) LIKE {2};")
+                formatted_query = psycopg.sql.SQL("SELECT * FROM {0} AS m WHERE LOWER ({1}) LIKE {2};")
                 formatted_query = formatted_query.format(
                     psycopg.sql.Identifier(table),
                     psycopg.sql.Identifier(column),
@@ -220,7 +221,7 @@ class Client:
                 )
 
             case "<":
-                formatted_query = psycopg.sql.SQL("SELECT * FROM {0} WHERE {1} < {2};")
+                formatted_query = psycopg.sql.SQL("SELECT * FROM {0} AS m WHERE {1} < {2};")
                 formatted_query = formatted_query.format(
                     psycopg.sql.Identifier(table),
                     psycopg.sql.Identifier(column),
@@ -228,7 +229,7 @@ class Client:
                 )
 
             case "=":
-                formatted_query = psycopg.sql.SQL("SELECT * FROM {0} WHERE {1} = {2};")
+                formatted_query = psycopg.sql.SQL("SELECT * FROM {0} AS m WHERE {1} = {2};")
                 formatted_query = formatted_query.format(
                     psycopg.sql.Identifier(table),
                     psycopg.sql.Identifier(column),
@@ -236,14 +237,19 @@ class Client:
                 )
 
             case ">":
-                formatted_query = psycopg.sql.SQL("SELECT * FROM {0} WHERE {1} > {2};")
+                formatted_query = psycopg.sql.SQL("SELECT * FROM {0} AS m WHERE {1} > {2};")
                 formatted_query = formatted_query.format(
                     psycopg.sql.Identifier(table),
                     psycopg.sql.Identifier(column),
                     int(query)
                 )
 
-        self.cursor.execute(formatted_query.as_string())
+        sql_command = formatted_query.as_string()
+
+        if not show_checked_out and table in ["media", "full_book", "full_movie", "full_music"]:
+            sql_command = f"{sql_command[:-1]} AND NOT EXISTS (SELECT r.media_id FROM full_renting AS r WHERE m.id = r.media_id AND r.time_returned_posix = 9223372036854775807);"
+
+        self.cursor.execute(sql_command)
 
         return self.cursor.fetchall()
 
@@ -257,25 +263,43 @@ class Client:
             queries[queries.index("account")] = f"account.id={self.account_id}"
 
         if "checked-out" in queries:
-            queries[queries.index("checked-out")] = f"checked-out.user-id={self.account_id}"
+            queries[queries.index("checked-out")] = "-i"
+            queries.append(f"checked-out.user-id={self.account_id}")
 
         if "overdue" in queries:
             queries[queries.index("overdue")] = "-i"
             queries += [
-                f"checked-out.user-id={self.account_id}",
-                f"checked-out.date-returned={POSTGRES_MAX_BIGINT_SIZE}",
                 f"checked-out.date-returned={POSTGRES_MAX_BIGINT_SIZE}",
                 f"checked-out.date-due<{time_posix()}"
             ]
 
+            show_all = False
+            show_all_index = queries.index("--all") if "--all" in queries else -1
+            show_all_index = queries.index("-a") if show_all_index == -1 and "-a" in queries else show_all_index
+
+            if show_all_index == -1:
+                queries.append(f"checked-out.user-id={self.account_id}")
+
+            else:
+                del queries[show_all_index]
+                self.check_permissions(ADMIN_ACCESS_LEVEL)
+
+
         intersection = False
         intersection_index = queries.index("--intersection") if "--intersection" in queries else -1
-        intersection_index = queries.index("-i") if intersection_index == -1 and "-i" in queries else -1
+        intersection_index = queries.index("-i") if intersection_index == -1 and "-i" in queries else intersection_index
 
         if intersection_index != -1:
             intersection = True
-            del args[intersection_index + 1]
-            del args[intersection_index]
+            del queries[intersection_index]
+
+        show_checked_out = False
+        show_checked_out_index = queries.index("--show-checked-out") if "--show-checked-out" in queries else -1
+        show_checked_out_index = queries.index("-s") if show_checked_out_index == -1 and "-s" in queries else show_checked_out_index
+
+        if show_checked_out_index != -1:
+            show_checked_out = True
+            del queries[show_checked_out_index]
 
         for query in queries:
             operator_index = min([query.find(o) for o in OPERATORS if query.find(o) != -1])
@@ -299,7 +323,10 @@ class Client:
                 print("Permission denied")
                 exit(1)
 
-            result = set(self.query_database(values["table"], values["column"], values["operation"], values["query"]))
+            if values["table"] == "full_renting":
+                self.check_permissions(ADMIN_ACCESS_LEVEL)
+
+            result = set(self.query_database(values["table"], values["column"], values["operation"], values["query"], show_checked_out))
 
             if output != set() and intersection:
                 output = output.intersection(result)
@@ -338,7 +365,7 @@ class Client:
         if args != ["account"]:
             self.check_permissions(ADMIN_ACCESS_LEVEL)
 
-        deletion_queue = self.formatted_search(*args[1:])
+        deletion_queue = self.formatted_search(*args[1:], "--show-checked-out")
 
         for result in deletion_queue:
             print(result)
@@ -357,7 +384,7 @@ class Client:
     def return_media(self, *args: str) -> None:
         return_time = time_posix()
 
-        return_queue = self.formatted_search("checked-out", *args[1:])
+        return_queue = self.formatted_search(*args[1:], "checked-out")
 
         for i, result in enumerate(return_queue):
             print(f"{i}\t{result}")
@@ -378,7 +405,7 @@ class Client:
         if args != ["account"] and sorted(args) != ["--intersection", "account"] and sorted(args) != ["-i", "account"] and sorted(args) != ["--intersection", "-i", "account"]:
             self.check_permissions(ADMIN_ACCESS_LEVEL)
 
-        selected_tuple = self.formatted_search(*args[1:-1])
+        selected_tuple = self.formatted_search(*args[1:-1], "--show-checked-out")
 
         if len(selected_tuple) > 1:
             print("More than one entry selected")
