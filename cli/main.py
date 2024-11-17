@@ -34,20 +34,38 @@ COLUMN_MAPPING = {
     "artist": "artist",
     "author": "author",
     "date-added": "time_added_posix",
+    "date-checked-out": "start_time_posix",
     "date-due": "end_time_posix",
     "date-returned": "time_returned_posix",
     "director": "director",
-    "duration": "duration_seconds",
+    "duration-seconds": "duration_seconds",
     "email": "email",
     "genre": "genre",
     "id": "id",
     "isbn": "isbn",
+    "media-id": "media_id",
     "password": "password",
     "publisher": "publisher",
     "release-year": "release_year",
     "title": "title",
     "user-id": "user_id",
     "username": "username"
+}
+
+USER_TABLE = "username\temail\taccess-level"
+MEDIA_TABLE = "id\tdate-added\ttitle\trelease-year"
+BOOK_TABLE = f"{MEDIA_TABLE}\tauthor\tpublisher\tisbn"
+MOVIE_TABLE = f"{MEDIA_TABLE}\tdirector\tpublisher\tgenre\tduration-seconds"
+MUSIC_TABLE = f"{MEDIA_TABLE}\tartist\tpublisher\talbum\tgenre\tduration-seconds"
+RENTING_TABLE = f"id\tdate-checked-out\tdate-due\ttime-returned\tusername\temail\tmedia-id\tdate-added\ttitle\trelease-year"
+
+COLUMNS = {
+    5: USER_TABLE,
+    4: MEDIA_TABLE,
+    7: BOOK_TABLE,
+    8: MOVIE_TABLE,
+    9: MUSIC_TABLE,
+    11: RENTING_TABLE
 }
 
 OPERATORS = [   #   Python; SQL
@@ -98,9 +116,9 @@ types, attributes, and value types:
         publisher: str | genre: str | duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
-  checked-out.<id: int | date-due: int | date-returned: int |
-              account attributes | media-id: int | title: str | release-year:
-              int | date-added: int>
+  checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
+              int | account attributes | media-id: int | title: str |
+              release-year: int | date-added: int>
 
 operators:
   :                         search for substring; not case sensetive; applies
@@ -158,9 +176,9 @@ types, attributes, and value types:
         publisher: str | genre: str | duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
-  checked-out.<id: int | date-due: int | date-returned: int |
-              account attributes | media-id: int | title: str | release-year:
-              int | date-added: int>
+  checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
+              int | account attributes | media-id: int | title: str |
+              release-year: int | date-added: int>
 
 operators:
   :                         search for substring; not case sensetive; applies
@@ -187,9 +205,9 @@ types, attributes, and value types:
         publisher: str | genre: str | duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
-  checked-out.<id: int | date-due: int | date-returned: int |
-              account attributes | media-id: int | title: str | release-year:
-              int | date-added: int>
+  checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
+              int | account attributes | media-id: int | title: str |
+              release-year: int | date-added: int>
 
 operators:
   :                         search for substring; not case sensetive; applies
@@ -221,9 +239,9 @@ types, attributes, and value types:
         publisher: str | genre: str | duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
-  checked-out.<id: int | date-due: int | date-returned: int |
-              account attributes | media-id: int | title: str | release-year:
-              int | date-added: int>
+  checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
+              int | account attributes | media-id: int | title: str |
+              release-year: int | date-added: int>
 
 operators:
   :                         search for substring; not case sensetive; applies
@@ -256,9 +274,9 @@ types, attributes, and value types:
         publisher: str | genre: str | duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
-  checked-out.<id: int | date-due: int | date-returned: int |
-              account attributes | media-id: int | title: str | release-year:
-              int | date-added: int>
+  checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
+              int | account attributes | media-id: int | title: str |
+              release-year: int | date-added: int>
 
 operators:
   :                         search for substring; not case sensetive; applies
@@ -271,6 +289,53 @@ operators:
 
 def time_posix() -> int:
     return int(time.time())
+
+
+def format_user_data(user_data_entry: tuple[any]) -> str:
+    return f"{user_data_entry[1]}\t{user_data_entry[2]}\t{user_data_entry[4]}"
+
+
+def format_media(media_entry: tuple[any]) -> str:
+    media_entry = [str(v) for v in media_entry]
+    return "\t".join(media_entry)
+
+
+def format_book(book_entry: tuple[any]) -> str:
+    book_entry = [str(v) for v in book_entry]
+    return "\t".join(book_entry)
+
+
+def format_movie(movie_entry: tuple[any]) -> str:
+    movie_entry = [str(v) for v in movie_entry]
+    return "\t".join(movie_entry)
+
+
+def format_music(music_entry: tuple[any]) -> str:
+    music_entry = [str(v) for v in music_entry]
+    return "\t".join(music_entry)
+
+
+def format_renting(renting_entry: tuple[any]) -> str:
+    renting_entry = [str(v) for v in renting_entry]
+    return "\t".join(renting_entry)
+
+
+def format_entry(entry: tuple[any]) -> str:
+    match len(entry):
+        case 5:
+            return format_user_data(entry)
+
+        case 4:
+            return format_media(entry)
+
+        case 7:
+            return format_book(entry)
+
+        case 8:
+            return format_movie(entry)
+
+        case 11:
+            return format_renting(entry)
 
 
 class Client:
@@ -546,8 +611,15 @@ class Client:
         if args[1] == "--help":
             print(HELP["SEARCH"])
 
-        for result in self.formatted_search(*args[1:]):
-            print(result)
+        results = self.formatted_search(*args[1:])
+
+        previous_len = 0
+        for result in results:
+            if len(result) != previous_len:
+                print(COLUMNS[len(result)])
+                previous_len = len(result)
+
+            print(format_entry(result))
 
 
     def checkout(self, *args: str) -> None:
@@ -565,7 +637,7 @@ class Client:
             exit(1)
 
         for result in checkout_queue:
-            if result[1] not in [VIEWER_ACCESS_LEVEL, USER_ACCESS_LEVEL, ADMIN_ACCESS_LEVEL, ROOT_ACCESS_LEVEL]:
+            if len(result) == 5:
                 print(f"Can't checkout account")
                 continue
 
@@ -586,14 +658,19 @@ class Client:
 
         deletion_queue = self.formatted_search(*args[1:], "--show-checked-out")
 
+        previous_len = 0
         for result in deletion_queue:
-            print(result)
+            if len(result) != previous_len:
+                print(COLUMNS[len(result)])
+                previous_len = len(result)
+
+            print(format_entry(result))
 
         if input("Do you want to remove these entries? [y/n] ") != "y":
             exit(1)
 
         for result in deletion_queue:
-            if result[1] not in [VIEWER_ACCESS_LEVEL, USER_ACCESS_LEVEL, ADMIN_ACCESS_LEVEL, ROOT_ACCESS_LEVEL]:
+            if len(result) == 5:
                 self.cursor.execute("DELETE FROM media WHERE id = %s;", (result[0],))
 
             else:
@@ -608,8 +685,13 @@ class Client:
 
         return_queue = self.formatted_search(*args[1:], "checked-out")
 
-        for i, result in enumerate(return_queue):
-            print(f"{i}\t{result}")
+        previous_len = 0
+        for result in return_queue:
+            if len(result) != previous_len:
+                print(COLUMNS[len(result)])
+                previous_len = len(result)
+
+            print(format_entry(result))
 
         if input("Do you want to return this media [y/n] ") != "y":
             exit(1)
@@ -638,7 +720,7 @@ class Client:
 
         selected_tuple = selected_tuple[0]
 
-        print(selected_tuple)
+        print(format_entry(selected_tuple))
 
         if input("Do you want to modify this entry [y/n] ") != "y":
             exit(1)

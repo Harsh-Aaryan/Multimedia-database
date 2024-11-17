@@ -60,6 +60,7 @@ CREATE TABLE movie (
 CREATE TABLE music (
     media_id INTEGER PRIMARY KEY REFERENCES media(id) ON DELETE CASCADE,
     artist VARCHAR(1024),
+    publisher VARCHAR(1024),
     album VARCHAR(1024),
     genre VARCHAR(1024),
     duration_seconds INTEGER CHECK (duration_seconds > 0)
@@ -67,7 +68,7 @@ CREATE TABLE music (
 
 
 CREATE VIEW full_renting AS
-    SELECT r.id, r.start_time_posix, r.end_time_posix, r.time_returned_posix, u.id AS user_id, u.username, u.email AS user_email, m.id AS media_id, m.time_added_posix, m.title, m.release_year
+    SELECT r.id, r.start_time_posix, r.end_time_posix, r.time_returned_posix, u.username, u.email AS user_email, m.id AS media_id, m.time_added_posix, m.title, m.release_year
     FROM user_data AS u JOIN renting AS r ON u.id = r.user_id JOIN media AS m ON r.media_id = m.id
 ;
 
@@ -85,7 +86,7 @@ CREATE VIEW full_movie AS
 
 
 CREATE VIEW full_music AS
-    SELECT m.id, m.time_added_posix, m.title, m.release_year, u.artist, u.album, u.genre, u.duration_seconds
+    SELECT m.id, m.time_added_posix, m.title, m.release_year, u.artist, u.publisher, u.album, u.genre, u.duration_seconds
     FROM media AS m JOIN music AS u ON m.id = u.media_id
 ;
 
@@ -93,34 +94,34 @@ CREATE VIEW full_music AS
 --0 root
 --1 admin
 --2 user
---3 viewer only 
+--3 viewer only
 
 INSERT INTO user_data (id, username, email, password, access_level) VALUES
     (0, 'root', 'root@localhost.com', 'rootpass123', 0);
 
--- admin 
+-- admin
 INSERT INTO user_data (id, username, email, password, access_level) VALUES
     (1, 'admin', 'admin@localhost.com', 'adminpass123', 1),
     (2, 'ad', 'ad@localhost.com', 'adpass123', 1);
 
--- user 
+-- user
 INSERT INTO user_data (id, username, email, password, access_level) VALUES
     (3, 'user', 'user@localhost.com', 'userpass123', 2),
     (4, 'bob', 'bob@localhost.com', 'bobpass123', 2),
     (5, 'joe', 'joe@localhost.com', 'joepass123', 2);
 
---viewe 
+--viewe
 INSERT INTO user_data (id, username, email, password, access_level) VALUES
     (6, 'viewer', 'viewer@localhost.com', 'viewerpass123', 3);
 
---book 
+--book
 INSERT INTO media (id, time_added_posix, title, release_year) VALUES
     (200,1678991,'harry potter',1997),
     (201,1678992,'harry potter 2',1998),
     (202,1678993,'Dune',1984),
     (204,1678994, '1984', 1949);
 
--- book infoo 
+-- book infoo
 INSERT INTO book (media_id, author, publisher, isbn) VALUES
     (200, 'JK Rowling', 'Bloomsbury', '978-3-16-148410-0'),
     (201, 'JK Rowling', 'Bloomsbury', '978-3-15-148410-1'),
@@ -153,12 +154,11 @@ INSERT INTO music (media_id, artist, album, genre, duration_seconds) VALUES
     (401, 'Kanye West', 'Donda', 'Rap', 180),
    (402, 'Coldplay', 'A head full of dreams', 'Pop', 180);
 
--- need rental data 
+-- need rental data
 INSERT INTO renting (id, user_id, media_id, start_time_posix, end_time_posix, time_returned_posix) VALUES
-    
-    (1, 3, 200, 1699987200, 1702579200, 1700592000),        
-    (2, 4, 201, 1699987200, 1702579200, 9223372036854775807), 
+
+    (1, 3, 200, 1699987200, 1702579200, 1700592000),
+    (2, 4, 201, 1699987200, 1702579200, 9223372036854775807),
     (4, 3, 204, 1696291200, 1698883200, 9223372036854775807),
-    (5, 4, 300, 1699987200, 1702579200, 1700592000),       
+    (5, 4, 300, 1699987200, 1702579200, 1700592000),
     (6, 5, 301, 1699987200, 1702579200, 9223372036854775807);
-    

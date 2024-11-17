@@ -23,9 +23,9 @@ types, attributes, and value types:
         publisher: str | genre: str | duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
-  checked-out.<id: int | date-due: int | date-returned: int |
-              account attributes | media-id: int | title: str | release-year:
-              int | date-added: int>
+  checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
+              int | account attributes | media-id: int | title: str |
+              release-year: int | date-added: int>
 
 operators:
   :                         search for substring; not case sensetive; applies
