@@ -181,6 +181,9 @@ class Client:
 
 
     def add(self, *args: str) -> None:
+        if args[1] == "--help":
+            print("add help")
+
         for a in args[1:]:
             values = {
                 "table": a[:a.index("=")],
@@ -353,6 +356,10 @@ class Client:
             exit(1)
 
         for result in checkout_queue:
+            if result[1] not in [VIEWER_ACCESS_LEVEL, USER_ACCESS_LEVEL, ADMIN_ACCESS_LEVEL, ROOT_ACCESS_LEVEL]:
+                print(f"Can't checkout account")
+                continue
+
             renting_id = self.new_id("renting")
 
             self.cursor.execute(
@@ -505,6 +512,9 @@ def main(*args: str) -> None:
 
     with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
         with conn.cursor() as cur:
+            if args[1] == "--help":
+                print("main help")
+
             account = check_login(cur, args)
 
             if account != None:
