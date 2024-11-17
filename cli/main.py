@@ -454,6 +454,7 @@ class Client:
     def add(self, *args: str) -> None:
         if args[1] == "--help":
             print(HELP["ADD"])
+            exit()
 
         for a in args[1:]:
             values = {
@@ -610,6 +611,7 @@ class Client:
     def search(self, *args: str) -> None:
         if args[1] == "--help":
             print(HELP["SEARCH"])
+            exit()
 
         results = self.formatted_search(*args[1:])
 
@@ -625,6 +627,7 @@ class Client:
     def checkout(self, *args: str) -> None:
         if args[1] == "--help":
             print(HELP["CHECKOUT"])
+            exit()
 
         checkout_time = time_posix()
 
@@ -652,6 +655,7 @@ class Client:
     def remove(self, *args: str) -> None:
         if args[1] == "--help":
             print(HELP["REMOVE"])
+            exit()
 
         if args != ["account"]:
             self.check_permissions(ADMIN_ACCESS_LEVEL)
@@ -680,6 +684,7 @@ class Client:
     def return_media(self, *args: str) -> None:
         if args[1] == "--help":
             print(HELP["RETURN"])
+            exit()
 
         return_time = time_posix()
 
@@ -708,6 +713,7 @@ class Client:
     def set_value(self, operations: str, *args: str) -> None:
         if args[1] == "--help":
             print(HELP["SET"])
+            exit()
 
         if args != ["account"] and sorted(args) != ["--intersection", "account"] and sorted(args) != ["-i", "account"] and sorted(args) != ["--intersection", "-i", "account"]:
             self.check_permissions(ADMIN_ACCESS_LEVEL)
@@ -747,24 +753,45 @@ class Client:
 
 
     def main(self, *args: str) -> None:
-        match args[1]:
-            case "add":
-                self.add(*args[1:])
+        try:
+            match args[1]:
+                case "add":
+                    self.add(*args[1:])
+                    return
 
-            case "checkout":
-                self.checkout(*args[1:])
+                case "checkout":
+                    self.checkout(*args[1:])
+                    return
 
-            case "remove":
-                self.remove(*args[1:])
+                case "remove":
+                    self.remove(*args[1:])
+                    return
 
-            case "return":
-                self.return_media(*args[1:])
+                case "return":
+                    self.return_media(*args[1:])
+                    return
 
-            case "search":
-                self.search(*args[1:])
+                case "search":
+                    self.search(*args[1:])
+                    return
 
-            case "set":
-                self.set_value(args[-1], *args[1:])
+                case "set":
+                    self.set_value(args[-1], *args[1:])
+                    return
+
+                case _:
+                    print("Invalid command")
+                    return
+
+        except IndexError:
+            pass
+        except KeyError:
+            pass
+        except ValueError:
+            pass
+
+        print(f"Invalid input\tTry './cli/main.py {args[1]} --help' for more information.")
+        exit(1)
 
 
 def check_login(cursor: psycopg.Cursor, args: list[str]) -> any:
@@ -835,6 +862,10 @@ def main(*args: str) -> None:
 
             else:
                 client = Client(cur)
+
+            if len(args) <= 1:
+                print(f"Invalid input\tTry './cli/main.py --help' for more information.")
+                exit(1)
 
             client.main(*args)
 
