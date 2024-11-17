@@ -34,20 +34,38 @@ COLUMN_MAPPING = {
     "artist": "artist",
     "author": "author",
     "date-added": "time_added_posix",
+    "date-checked-out": "start_time_posix",
     "date-due": "end_time_posix",
     "date-returned": "time_returned_posix",
     "director": "director",
-    "duration": "duration_seconds",
+    "duration-seconds": "duration_seconds",
     "email": "email",
     "genre": "genre",
     "id": "id",
     "isbn": "isbn",
+    "media-id": "media_id",
     "password": "password",
     "publisher": "publisher",
     "release-year": "release_year",
     "title": "title",
     "user-id": "user_id",
     "username": "username"
+}
+
+USER_TABLE = "username\temail\taccess-level"
+MEDIA_TABLE = "id\tdate-added\ttitle\trelease-year"
+BOOK_TABLE = f"{MEDIA_TABLE}\tauthor\tpublisher\tisbn"
+MOVIE_TABLE = f"{MEDIA_TABLE}\tdirector\tpublisher\tgenre\tduration-seconds"
+MUSIC_TABLE = f"{MEDIA_TABLE}\tartist\tpublisher\talbum\tgenre\tduration-seconds"
+RENTING_TABLE = f"id\tdate-checked-out\tdate-due\ttime-returned\tusername\temail\tmedia-id\tdate-added\ttitle\trelease-year"
+
+COLUMNS = {
+    5: USER_TABLE,
+    4: MEDIA_TABLE,
+    7: BOOK_TABLE,
+    8: MOVIE_TABLE,
+    9: MUSIC_TABLE,
+    11: RENTING_TABLE
 }
 
 OPERATORS = [   #   Python; SQL
@@ -63,8 +81,261 @@ POSTGRES_MAX_INTEGER_SIZE = 2147483647
 POSTGRES_MAX_BIGINT_SIZE = 9223372036854775807
 
 
+HELP = {
+    "ADD": f"""usage: {sys.argv[0]} [main options] add [<type>=<attributes>]...
+
+add accounts and/or media to the database
+
+types and attributes:
+  account=<username>;<email>;<password>
+  media=<title>;<release-year>
+  book=<title>;<release-year>;<author>;<publisher>;<isbn>
+  movie=<title>;<release-year>;<director>;<genre>;<duration>
+  music=<title>;<release-year>;<artist>;<album>;<genre>;<duration-seconds>""",
+
+    "CHECKOUT": f"""usage: {sys.argv[0]} [main options] checkout [options] <aliases> [<type>.
+       <attribute><operator><value>]...
+
+check out media from the database
+
+options:
+  -i, --intersection        use intersection of results instead of union of
+                            results
+  -s, --show-checked-out    show checked out media in results
+  -a, --all                 show all overdue media; requires overdue and admin
+                            account or higher
+
+aliases:
+  checked-out               search checked out media; requires -i
+  overdue                   search overdue medial; requires -i
+
+types, attributes, and value types:
+  media.<id: int | title: str | release-year: int | date-added: int>
+  book.<media attributes | author: str | publisher: str | isbn: str>
+  movie.<media attributes | release-year: int | director: str |
+        publisher: str | genre: str | duration-seconds: int>
+  music.<media attributes | artist: str | album: str | genre: str |
+        duration-seconds: int>
+  checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
+              int | account attributes | media-id: int | title: str |
+              release-year: int | date-added: int>
+
+operators:
+  :                         search for substring; not case sensetive; applies
+                            to str
+  <                         search for less than; applies to int
+  =                         search for exact match; applies to str and int
+  >                         search for greater than; applies to int""",
+
+    "MAIN": f"""usage: {sys.argv[0]} [options] <command> [<args>]
+
+options:
+      --help                display this help and exit
+  -a, --all                 display all help and exit; requires --help
+  -e, --email [email]       email to sign in with; not necessary with -u;
+                            requires -p
+  -u, --username [username]  username to sign in with; not necessary with -e;
+                            requires -p
+  -p, --password [password]  password to sign in with; required with -u and -e
+
+commands:
+  add                       add accounts and/or media to the database; requires
+                            admin account or higher
+  checkout                  checkout media from the database; requires user
+                            account or higher
+  remove                    remove accounts and/or media from the database;
+                            requires user account or higher
+  return                    return media to the database; requires user account
+                            or higher
+  search                    search accounts, media, and media status
+  set                       change the value of an attribute of an account or
+                            media""",
+
+    "REMOVE": f"""usage: {sys.argv[0]} [main options] remove [options] <aliases> [<type>.
+       <attribute><operator><value>]...
+
+remove accounts and/or media from the database
+
+options:
+  -i, --intersection        use intersection of results instead of union of
+                            results
+  -s, --show-checked-out    show checked out media in results
+  -a, --all                 show all overdue media; requires overdue and admin
+                            account or higher
+
+aliases:
+  account                   search for signed in account
+  checked-out               search checked out media; requires -i
+  overdue                   search overdue medial; requires -i
+
+types, attributes, and value types:
+  account.<username: str | email: str | access-level: int>
+  media.<id: int | title: str | release-year: int | date-added: int>
+  book.<media attributes | author: str | publisher: str | isbn: str>
+  movie.<media attributes | release-year: int | director: str |
+        publisher: str | genre: str | duration-seconds: int>
+  music.<media attributes | artist: str | album: str | genre: str |
+        duration-seconds: int>
+  checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
+              int | account attributes | media-id: int | title: str |
+              release-year: int | date-added: int>
+
+operators:
+  :                         search for substring; not case sensetive; applies
+                            to str
+  <                         search for less than; applies to int
+  =                         search for exact match; applies to str and int
+  >                         search for greater than; applies to int""",
+
+    "RETURN": f"""usage: {sys.argv[0]} [main options] return [options] <aliases> [<type>.
+       <attribute><operator><value>]...
+
+return checked out media to the database; search -i is enabled
+
+options:
+  -s, --show-checked-out    show checked out media in results
+
+aliases:
+  overdue                   search overdue medial
+
+types, attributes, and value types:
+  media.<id: int | title: str | release-year: int | date-added: int>
+  book.<media attributes | author: str | publisher: str | isbn: str>
+  movie.<media attributes | release-year: int | director: str |
+        publisher: str | genre: str | duration-seconds: int>
+  music.<media attributes | artist: str | album: str | genre: str |
+        duration-seconds: int>
+  checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
+              int | account attributes | media-id: int | title: str |
+              release-year: int | date-added: int>
+
+operators:
+  :                         search for substring; not case sensetive; applies
+                            to str
+  <                         search for less than; applies to int
+  =                         search for exact match; applies to str and int
+  >                         search for greater than; applies to int""",
+
+    "SEARCH": f"""usage: {sys.argv[0]} [main options] search [options] <aliases> [<type>.
+       <attribute><operator><value>]...
+
+options:
+  -i, --intersection        use intersection of results instead of union of
+                            results
+  -s, --show-checked-out    show checked out media in results
+  -a, --all                 show all overdue media; requires overdue and admin
+                            account or higher
+
+aliases:
+  account                   search for signed in account
+  checked-out               search checked out media; requires -i
+  overdue                   search overdue medial; requires -i
+
+types, attributes, and value types:
+  account.<username: str | email: str | access-level: int>
+  media.<id: int | title: str | release-year: int | date-added: int>
+  book.<media attributes | author: str | publisher: str | isbn: str>
+  movie.<media attributes | release-year: int | director: str |
+        publisher: str | genre: str | duration-seconds: int>
+  music.<media attributes | artist: str | album: str | genre: str |
+        duration-seconds: int>
+  checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
+              int | account attributes | media-id: int | title: str |
+              release-year: int | date-added: int>
+
+operators:
+  :                         search for substring; not case sensetive; applies
+                            to str
+  <                         search for less than; applies to int
+  =                         search for exact match; applies to str and int
+  >                         search for greater than; applies to int""",
+
+    "SET": f"""usage: {sys.argv[0]} [main options] set [<type>.<attribute><operator>
+       <value>]... [<new attribute>=<new value>;...]
+
+set values of specific accounts or media; multiple values can be updated at
+once, but only one account or media can be updated at a time
+
+options:
+  -i, --intersection        use intersection of results instead of union of
+                            results
+  -s, --show-checked-out    show checked out media in results
+  -a, --all                 show all overdue media; requires overdue and admin
+                            account or higher
+
+aliases:
+  checked-out               search checked out media; requires -i
+  overdue                   search overdue medial; requires -i
+
+types, attributes, and value types:
+  media.<id: int | title: str | release-year: int | date-added: int>
+  book.<media attributes | author: str | publisher: str | isbn: str>
+  movie.<media attributes | release-year: int | director: str |
+        publisher: str | genre: str | duration-seconds: int>
+  music.<media attributes | artist: str | album: str | genre: str |
+        duration-seconds: int>
+  checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
+              int | account attributes | media-id: int | title: str |
+              release-year: int | date-added: int>
+
+operators:
+  :                         search for substring; not case sensetive; applies
+                            to str
+  <                         search for less than; applies to int
+  =                         search for exact match; applies to str and int
+  >                         search for greater than; applies to int"""
+}
+
+
 def time_posix() -> int:
     return int(time.time())
+
+
+def format_user_data(user_data_entry: tuple[any]) -> str:
+    return f"{user_data_entry[1]}\t{user_data_entry[2]}\t{user_data_entry[4]}"
+
+
+def format_media(media_entry: tuple[any]) -> str:
+    media_entry = [str(v) for v in media_entry]
+    return "\t".join(media_entry)
+
+
+def format_book(book_entry: tuple[any]) -> str:
+    book_entry = [str(v) for v in book_entry]
+    return "\t".join(book_entry)
+
+
+def format_movie(movie_entry: tuple[any]) -> str:
+    movie_entry = [str(v) for v in movie_entry]
+    return "\t".join(movie_entry)
+
+
+def format_music(music_entry: tuple[any]) -> str:
+    music_entry = [str(v) for v in music_entry]
+    return "\t".join(music_entry)
+
+
+def format_renting(renting_entry: tuple[any]) -> str:
+    renting_entry = [str(v) for v in renting_entry]
+    return "\t".join(renting_entry)
+
+
+def format_entry(entry: tuple[any]) -> str:
+    match len(entry):
+        case 5:
+            return format_user_data(entry)
+
+        case 4:
+            return format_media(entry)
+
+        case 7:
+            return format_book(entry)
+
+        case 8:
+            return format_movie(entry)
+
+        case 11:
+            return format_renting(entry)
 
 
 class Client:
@@ -181,6 +452,10 @@ class Client:
 
 
     def add(self, *args: str) -> None:
+        if args[1] == "--help":
+            print(HELP["ADD"])
+            exit()
+
         for a in args[1:]:
             values = {
                 "table": a[:a.index("=")],
@@ -204,9 +479,6 @@ class Client:
 
                 case "media":
                     print(self.new_media(*values["tuple"]), *[repr(v) for v in values["tuple"]])
-
-                case _:
-                    print("<help>")
 
 
     def query_database(self, table: str, column: str, operator: str, query: str, show_checked_out: bool=False) -> list[tuple]:
@@ -337,11 +609,26 @@ class Client:
 
 
     def search(self, *args: str) -> None:
-        for result in self.formatted_search(*args[1:]):
-            print(result)
+        if args[1] == "--help":
+            print(HELP["SEARCH"])
+            exit()
+
+        results = self.formatted_search(*args[1:])
+
+        previous_len = 0
+        for result in results:
+            if len(result) != previous_len:
+                print(COLUMNS[len(result)])
+                previous_len = len(result)
+
+            print(format_entry(result))
 
 
     def checkout(self, *args: str) -> None:
+        if args[1] == "--help":
+            print(HELP["CHECKOUT"])
+            exit()
+
         checkout_time = time_posix()
 
         checkout_queue = self.formatted_search(*args[1:])
@@ -353,6 +640,10 @@ class Client:
             exit(1)
 
         for result in checkout_queue:
+            if len(result) == 5:
+                print(f"Can't checkout account")
+                continue
+
             renting_id = self.new_id("renting")
 
             self.cursor.execute(
@@ -362,19 +653,28 @@ class Client:
 
 
     def remove(self, *args: str) -> None:
+        if args[1] == "--help":
+            print(HELP["REMOVE"])
+            exit()
+
         if args != ["account"]:
             self.check_permissions(ADMIN_ACCESS_LEVEL)
 
         deletion_queue = self.formatted_search(*args[1:], "--show-checked-out")
 
+        previous_len = 0
         for result in deletion_queue:
-            print(result)
+            if len(result) != previous_len:
+                print(COLUMNS[len(result)])
+                previous_len = len(result)
+
+            print(format_entry(result))
 
         if input("Do you want to remove these entries? [y/n] ") != "y":
             exit(1)
 
         for result in deletion_queue:
-            if result[1] not in [VIEWER_ACCESS_LEVEL, USER_ACCESS_LEVEL, ADMIN_ACCESS_LEVEL, ROOT_ACCESS_LEVEL]:
+            if len(result) == 5:
                 self.cursor.execute("DELETE FROM media WHERE id = %s;", (result[0],))
 
             else:
@@ -382,12 +682,21 @@ class Client:
 
 
     def return_media(self, *args: str) -> None:
+        if args[1] == "--help":
+            print(HELP["RETURN"])
+            exit()
+
         return_time = time_posix()
 
         return_queue = self.formatted_search(*args[1:], "checked-out")
 
-        for i, result in enumerate(return_queue):
-            print(f"{i}\t{result}")
+        previous_len = 0
+        for result in return_queue:
+            if len(result) != previous_len:
+                print(COLUMNS[len(result)])
+                previous_len = len(result)
+
+            print(format_entry(result))
 
         if input("Do you want to return this media [y/n] ") != "y":
             exit(1)
@@ -402,6 +711,10 @@ class Client:
 
 
     def set_value(self, operations: str, *args: str) -> None:
+        if args[1] == "--help":
+            print(HELP["SET"])
+            exit()
+
         if args != ["account"] and sorted(args) != ["--intersection", "account"] and sorted(args) != ["-i", "account"] and sorted(args) != ["--intersection", "-i", "account"]:
             self.check_permissions(ADMIN_ACCESS_LEVEL)
 
@@ -413,7 +726,7 @@ class Client:
 
         selected_tuple = selected_tuple[0]
 
-        print(selected_tuple)
+        print(format_entry(selected_tuple))
 
         if input("Do you want to modify this entry [y/n] ") != "y":
             exit(1)
@@ -440,24 +753,45 @@ class Client:
 
 
     def main(self, *args: str) -> None:
-        match args[1]:
-            case "add":
-                self.add(*args[1:])
+        try:
+            match args[1]:
+                case "add":
+                    self.add(*args[1:])
+                    return
 
-            case "checkout":
-                self.checkout(*args[1:])
+                case "checkout":
+                    self.checkout(*args[1:])
+                    return
 
-            case "remove":
-                self.remove(*args[1:])
+                case "remove":
+                    self.remove(*args[1:])
+                    return
 
-            case "return":
-                self.return_media(*args[1:])
+                case "return":
+                    self.return_media(*args[1:])
+                    return
 
-            case "search":
-                self.search(*args[1:])
+                case "search":
+                    self.search(*args[1:])
+                    return
 
-            case "set":
-                self.set_value(args[-1], *args[1:])
+                case "set":
+                    self.set_value(args[-1], *args[1:])
+                    return
+
+                case _:
+                    print("Invalid command")
+                    return
+
+        except IndexError:
+            pass
+        except KeyError:
+            pass
+        except ValueError:
+            pass
+
+        print(f"Invalid input\tTry '{args[0]} {args[1]} --help' for more information.")
+        exit(1)
 
 
 def check_login(cursor: psycopg.Cursor, args: list[str]) -> any:
@@ -503,8 +837,24 @@ def check_login(cursor: psycopg.Cursor, args: list[str]) -> any:
 def main(*args: str) -> None:
     args = list(args)
 
+    if args[1] == "--help":
+        print(HELP["MAIN"])
+
+        if len(args) >= 3 and args[2] in ["-a", "--all"]:
+            for k in HELP:
+                if k == "MAIN":
+                    continue
+
+                print(HELP[k])
+
+                if k != "SET":
+                    print()
+
+        exit()
+
     with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
         with conn.cursor() as cur:
+
             account = check_login(cur, args)
 
             if account != None:
@@ -512,6 +862,10 @@ def main(*args: str) -> None:
 
             else:
                 client = Client(cur)
+
+            if len(args) <= 1:
+                print(f"Invalid input\tTry '{args[0]} --help' for more information.")
+                exit(1)
 
             client.main(*args)
 
