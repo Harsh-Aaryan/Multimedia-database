@@ -82,7 +82,7 @@ POSTGRES_MAX_BIGINT_SIZE = 9223372036854775807
 
 
 HELP = {
-    "ADD": """usage: ./cli/main.py [main options] add [<type>=<attributes>]...
+    "ADD": f"""usage: {sys.argv[0]} [main options] add [<type>=<attributes>]...
 
 add accounts and/or media to the database
 
@@ -93,7 +93,7 @@ types and attributes:
   movie=<title>;<release-year>;<director>;<genre>;<duration>
   music=<title>;<release-year>;<artist>;<album>;<genre>;<duration-seconds>""",
 
-    "CHECKOUT": """usage: ./cli/main.py [main options] checkout [options] <aliases> [<type>.
+    "CHECKOUT": f"""usage: {sys.argv[0]} [main options] checkout [options] <aliases> [<type>.
        <attribute><operator><value>]...
 
 check out media from the database
@@ -127,7 +127,7 @@ operators:
   =                         search for exact match; applies to str and int
   >                         search for greater than; applies to int""",
 
-    "MAIN": """usage: ./cli/main.py [options] <command> [<args>]
+    "MAIN": f"""usage: {sys.argv[0]} [options] <command> [<args>]
 
 options:
       --help                display this help and exit
@@ -151,7 +151,7 @@ commands:
   set                       change the value of an attribute of an account or
                             media""",
 
-    "REMOVE": """usage: ./cli/main.py [main options] remove [options] <aliases> [<type>.
+    "REMOVE": f"""usage: {sys.argv[0]} [main options] remove [options] <aliases> [<type>.
        <attribute><operator><value>]...
 
 remove accounts and/or media from the database
@@ -187,7 +187,7 @@ operators:
   =                         search for exact match; applies to str and int
   >                         search for greater than; applies to int""",
 
-    "RETURN": """usage: ./cli/main.py [main options] return [options] <aliases> [<type>.
+    "RETURN": f"""usage: {sys.argv[0]} [main options] return [options] <aliases> [<type>.
        <attribute><operator><value>]...
 
 return checked out media to the database; search -i is enabled
@@ -216,7 +216,7 @@ operators:
   =                         search for exact match; applies to str and int
   >                         search for greater than; applies to int""",
 
-    "SEARCH": """usage: ./cli/main.py [main options] search [options] <aliases> [<type>.
+    "SEARCH": f"""usage: {sys.argv[0]} [main options] search [options] <aliases> [<type>.
        <attribute><operator><value>]...
 
 options:
@@ -250,7 +250,7 @@ operators:
   =                         search for exact match; applies to str and int
   >                         search for greater than; applies to int""",
 
-    "SET": """usage: ./cli/main.py [main options] set [<type>.<attribute><operator>
+    "SET": f"""usage: {sys.argv[0]} [main options] set [<type>.<attribute><operator>
        <value>]... [<new attribute>=<new value>;...]
 
 set values of specific accounts or media; multiple values can be updated at
@@ -790,7 +790,7 @@ class Client:
         except ValueError:
             pass
 
-        print(f"Invalid input\tTry './cli/main.py {args[1]} --help' for more information.")
+        print(f"Invalid input\tTry '{args[0]} {args[1]} --help' for more information.")
         exit(1)
 
 
@@ -864,7 +864,7 @@ def main(*args: str) -> None:
                 client = Client(cur)
 
             if len(args) <= 1:
-                print(f"Invalid input\tTry './cli/main.py --help' for more information.")
+                print(f"Invalid input\tTry '{args[0]} --help' for more information.")
                 exit(1)
 
             client.main(*args)
