@@ -20,12 +20,15 @@ types, attributes, and value types:
   book.<media attributes | author: str | publisher: str | isbn: str>
   movie.<media attributes | release-year: int | director: str |
         publisher: str | genre: str | duration-seconds: int>
-  music.<media attributes | artist: str | album: str | genre: str | duration-seconds: int>
+  music.<media attributes | artist: str | album: str | genre: str |
+        duration-seconds: int>
   checked-out.<id: int | date-due: int | date-returned: int |
-              account attributes | media attributes>
+              account attributes | media-id: int | title: str | release-year:
+              int | date-added: int>
 
 operators:
-  :                         search for substring; not case sensetive; applies to str
+  :                         search for substring; not case sensetive; applies
+                            to str
   <                         search for less than; applies to int
   =                         search for exact match; applies to str and int
   >                         search for greater than; applies to int

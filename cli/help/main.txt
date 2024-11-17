@@ -2,6 +2,7 @@ usage: ./cli/main.py [options] <command> [<args>]
 
 options:
       --help                display this help and exit
+  -a, --all                 display all help and exit; requires --help
   -e, --email [email]       email to sign in with; not necessary with -u;
                             requires -p
   -u, --username [username]  username to sign in with; not necessary with -e;
