@@ -787,6 +787,10 @@ class Client:
             pass
         except KeyError:
             pass
+        except psycopg.errors.InvalidTextRepresentation:
+            pass
+        except psycopg.errors.UndefinedFunction:
+            pass
         except ValueError:
             pass
 
