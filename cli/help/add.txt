@@ -1,0 +1,10 @@
+usage: ./cli/main.py [main options] add [<type>=<attributes>]...
+
+add accounts and/or media to the database
+
+types and attributes:
+  account=<username>;<email>;<password>
+  media=<title>;<release-year>
+  book=<title>;<release-year>;<author>;<publisher>;<isbn>
+  movie=<title>;<release-year>;<director>;<genre>;<duration>
+  music=<title>;<release-year>;<artist>;<album>;<genre>;<duration-seconds>

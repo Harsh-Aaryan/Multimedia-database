@@ -1,0 +1,33 @@
+usage: ./cli/main.py [main options] search [options] <aliases> [<type>.
+       <attribute><operator><value>]...
+
+options:
+  -i, --intersection        use intersection of results instead of union of
+                            results
+  -s, --show-checked-out    show checked out media in results
+  -a, --all                 show all overdue media; requires overdue and admin
+                            account or higher
+
+aliases:
+  account                   search for signed in account
+  checked-out               search checked out media; requires -i
+  overdue                   search overdue medial; requires -i
+
+types, attributes, and value types:
+  account.<username: str | email: str | access-level: int>
+  media.<id: int | title: str | release-year: int | date-added: int>
+  book.<media attributes | author: str | publisher: str | isbn: str>
+  movie.<media attributes | release-year: int | director: str |
+        publisher: str | genre: str | duration-seconds: int>
+  music.<media attributes | artist: str | album: str | genre: str |
+        duration-seconds: int>
+  checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
+              int | account attributes | media-id: int | title: str |
+              release-year: int | date-added: int>
+
+operators:
+  :                         search for substring; not case sensetive; applies
+                            to str
+  <                         search for less than; applies to int
+  =                         search for exact match; applies to str and int
+  >                         search for greater than; applies to int

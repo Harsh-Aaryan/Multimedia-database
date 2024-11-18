@@ -1,0 +1,23 @@
+usage: ./cli/main.py [options] <command> [<args>]
+
+options:
+      --help                display this help and exit
+  -a, --all                 display all help and exit; requires --help
+  -e, --email [email]       email to sign in with; not necessary with -u;
+                            requires -p
+  -u, --username [username]  username to sign in with; not necessary with -e;
+                            requires -p
+  -p, --password [password]  password to sign in with; required with -u and -e
+
+commands:
+  add                       add accounts and/or media to the database; requires
+                            admin account or higher
+  checkout                  checkout media from the database; requires user
+                            account or higher
+  remove                    remove accounts and/or media from the database;
+                            requires user account or higher
+  return                    return media to the database; requires user account
+                            or higher
+  search                    search accounts, media, and media status
+  set                       change the value of an attribute of an account or
+                            media
