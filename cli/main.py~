@@ -6,6 +6,8 @@ import time
 
 import psycopg
 
+DATABASE_PASSWORD = "Sedmunds_314159"
+
 RETURN_TIME_DAYS = 30
 RETURN_TIME_SECONDS = 60 * 60 * 24 * RETURN_TIME_DAYS
 
@@ -65,11 +67,11 @@ COLUMNS = {
     11: RENTING_TABLE
 }
 
-OPERATORS = [   #   Python; SQL
-    ":",        #   in      like
-    "<",        #   <       <
-    "=",        #   ==      =
-    ">"         #   >       >
+OPERATORS = [  # Python; SQL
+    ":",  # in      like
+    "<",  # <       <
+    "=",  # ==      =
+    ">"  # >       >
 ]
 
 DATABASE_NAME = "multimedia_db"
