@@ -841,6 +841,10 @@ def check_login(cursor: psycopg.Cursor, args: list[str]) -> any:
 def main(*args: str) -> None:
     args = list(args)
 
+    if len(args) <= 1:
+        print(f"Invalid input\tTry '{args[0]} --help' for more information.")
+        exit(1)
+
     if args[1] == "--help":
         print(HELP["MAIN"])
 
