@@ -766,7 +766,7 @@ class Client:
                     return
 
                 case _:
-                    print(f"Unrecognized command '{args[1]}'")
+                    print(f"Unrecognized command {repr(args[1])}")
                     return
 
         except IndexError:
