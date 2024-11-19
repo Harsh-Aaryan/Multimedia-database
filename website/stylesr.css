@@ -4,7 +4,6 @@
     box-sizing: border-box;
 }
 
-(/*--working using previous base-->*/)
 body {
     font-family: 'Arial', sans-serif;
     background-color: #f0f2f5;
@@ -71,7 +70,6 @@ input {
     border-radius: 8px;
     font-size: 0.9rem;
     background-color: white;
-    transition: border-color 0.3s ease;
 }
 
 input:focus {
@@ -80,7 +78,7 @@ input:focus {
     box-shadow: 0 0 0 2px rgba(108, 124, 255, 0.1);
 }
 
-.register-btn {
+button {
     width: 100%;
     padding: 0.8rem;
     background-color: #6c7cff;
@@ -89,13 +87,8 @@ input:focus {
     border-radius: 8px;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: background-color 0.3s ease;
     margin-top: 1rem;
     font-weight: 500;
-}
-
-.register-btn:hover {
-    background-color: #5666ff;
 }
 
 .login-link {
@@ -109,10 +102,6 @@ input:focus {
     color: #6c7cff;
     text-decoration: none;
     font-weight: 500;
-}
-
-.login-link a:hover {
-    text-decoration: underline;
 }
 
 @media (max-width: 768px) {
@@ -132,4 +121,3 @@ input:focus {
         padding: 1rem;
     }
 }
-(/* working */)
