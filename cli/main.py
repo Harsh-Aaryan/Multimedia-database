@@ -780,7 +780,7 @@ class Client:
         except ValueError:
             pass
 
-        print(f"Invalid input\tTry '{args[0]} {args[1]} --help' for more information.")
+        print(f"Invalid input\nTry '{args[0]} {args[1]} --help' for more information.")
         exit(1)
 
 
@@ -830,7 +830,7 @@ def check_login(cursor: psycopg.Cursor, args: list[str]) -> any:
 def main(*args: str) -> None:
     args = list(args)
 
-    invalid_message = f"Invalid input\tTry '{args[0]} --help' for more information."
+    invalid_message = f"Invalid input\nTry '{args[0]} --help' for more information."
 
     if len(args) <= 1:
         print(invalid_message)
