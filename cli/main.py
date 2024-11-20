@@ -662,10 +662,10 @@ class Client:
 
         for result in deletion_queue:
             if len(result) == 5:
-                self.cursor.execute("DELETE FROM media WHERE id = %s;", (result[0],))
+                self.cursor.execute("DELETE FROM user_data WHERE id = %s;", (result[0],))
 
             else:
-                self.cursor.execute("DELETE FROM user_data WHERE id = %s;", (result[0],))
+                self.cursor.execute("DELETE FROM media WHERE id = %s;", (result[0],))
 
     def return_media(self, *args: str) -> None:
         if args[1] == "--help":
