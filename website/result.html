@@ -3,35 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Library</title>
-    <link rel="stylesheet" href="stylesresult.css">
+<!-- results, have to connecvt-->
+ <!-- just make 1 file -->
+    <title>Media Results</title>
+    <style>
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #EBEFFF;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .search-bar {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 5px;
+        }
+        .search-bar input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #656ED3;
+            border-radius: 5px;
+        }
+        .search-bar select {
+            padding: 10px;
+            border: 1px solid #656ED3;
+            border-radius: 5px;
+            min-width: 120px;
+        }
+        .search-bar button {
+            padding: 10px 20px;
+            background-color: #656ED3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .media-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .media-item {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(101,110,211,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .media-info {
+            flex-grow: 1;
+        }
+        .media-type {
+            background-color: #656ED3;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .action-buttons button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .rent-btn { background-color: #656ED3; color: white; }
+        .delete-btn { background-color: #FF6B6B; color: white; }
+        .edit-btn { background-color: #4ECDC4; color: white; }
+        .add-media-btn {
+            padding: 10px 20px;
+            background-color: #656ED3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 5px;
+        }
+        .pagination button {
+            padding: 5px 10px;
+            border: 1px solid #656ED3;
+            background-color: white;
+            color: #656ED3;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .pagination button:hover {
+            background-color: #656ED3;
+            color: white;
+        }
+        .metadata {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+    <!--check-->
 </head>
 <body>
     <div class="header">
-        <h1>Media Library</h1>
+        <h1 style="color: #656ED3;">Media Library</h1>
         <button class="add-media-btn">Add New Media</button>
     </div>
 
     <div class="search-bar">
-        <div class="category-filters">
-            <button class="category-btn">All categories</button>
-            <button class="category-btn">Books</button>
-            <button class="category-btn">Movies</button>
-            <button class="category-btn">Music</button>
-        </div>
-        <input type="search" class="search-input" placeholder="Search">
+        <input type="text" placeholder="Article name or keywords...">
+        <select>
+            <option value="">All categories</option>
+            <option value="book">Books</option>
+            <option value="movie">Movies</option>
+            <option value="music">Music</option>
+        </select>
+        <button>Search</button>
     </div>
 
     <div class="media-list">
-        <!--  have to link media -->
+        <!-- Media items-->
     </div>
 
     <div class="pagination">
-        <button>← Previous</button>
+        <button>&lt; Previous</button>
         <button>1</button>
         <button>2</button>
         <button>3</button>
-        <button>Next →</button>
+        <button>Next &gt;</button>
     </div>
 </body>
 </html>
