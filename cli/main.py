@@ -108,8 +108,8 @@ aliases:
 types, attributes, and value types:
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
-  movie.<media attributes | release-year: int | director: str |
-        publisher: str | genre: str | duration-seconds: int>
+  movie.<media attributes | director: str | publisher: str | genre: str |
+        duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
   checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
@@ -168,8 +168,8 @@ types, attributes, and value types:
   account.<username: str | email: str | access-level: int>
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
-  movie.<media attributes | release-year: int | director: str |
-        publisher: str | genre: str | duration-seconds: int>
+  movie.<media attributes | director: str | publisher: str | genre: str |
+        duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
   checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
@@ -197,8 +197,8 @@ aliases:
 types, attributes, and value types:
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
-  movie.<media attributes | release-year: int | director: str |
-        publisher: str | genre: str | duration-seconds: int>
+  movie.<media attributes | director: str | publisher: str | genre: str |
+        duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
   checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
@@ -231,8 +231,8 @@ types, attributes, and value types:
   account.<username: str | email: str | access-level: int>
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
-  movie.<media attributes | release-year: int | director: str |
-        publisher: str | genre: str | duration-seconds: int>
+  movie.<media attributes | director: str | publisher: str | genre: str |
+        duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
   checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
@@ -266,8 +266,8 @@ aliases:
 types, attributes, and value types:
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
-  movie.<media attributes | release-year: int | director: str |
-        publisher: str | genre: str | duration-seconds: int>
+  movie.<media attributes | director: str | publisher: str | genre: str |
+        duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
   checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
