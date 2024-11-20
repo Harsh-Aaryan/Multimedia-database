@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
-
-
-import argparse
-import json
-import psycopg
+import getpass
 import random
 import sys
 import time
 
+import psycopg
 
 RETURN_TIME_DAYS = 30
 RETURN_TIME_SECONDS = 60 * 60 * 24 * RETURN_TIME_DAYS
@@ -80,7 +77,6 @@ DATABASE_USER = "postgres"
 POSTGRES_MAX_INTEGER_SIZE = 2147483647
 POSTGRES_MAX_BIGINT_SIZE = 9223372036854775807
 
-
 HELP = {
     "ADD": f"""usage: {sys.argv[0]} [main options] add [<type>=<attributes>]...
 
@@ -112,8 +108,8 @@ aliases:
 types, attributes, and value types:
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
-  movie.<media attributes | release-year: int | director: str |
-        publisher: str | genre: str | duration-seconds: int>
+  movie.<media attributes | director: str | publisher: str | genre: str |
+        duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
   checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
@@ -172,8 +168,8 @@ types, attributes, and value types:
   account.<username: str | email: str | access-level: int>
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
-  movie.<media attributes | release-year: int | director: str |
-        publisher: str | genre: str | duration-seconds: int>
+  movie.<media attributes | director: str | publisher: str | genre: str |
+        duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
   checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
@@ -201,8 +197,8 @@ aliases:
 types, attributes, and value types:
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
-  movie.<media attributes | release-year: int | director: str |
-        publisher: str | genre: str | duration-seconds: int>
+  movie.<media attributes | director: str | publisher: str | genre: str |
+        duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
   checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
@@ -235,8 +231,8 @@ types, attributes, and value types:
   account.<username: str | email: str | access-level: int>
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
-  movie.<media attributes | release-year: int | director: str |
-        publisher: str | genre: str | duration-seconds: int>
+  movie.<media attributes | director: str | publisher: str | genre: str |
+        duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
   checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
@@ -270,8 +266,8 @@ aliases:
 types, attributes, and value types:
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
-  movie.<media attributes | release-year: int | director: str |
-        publisher: str | genre: str | duration-seconds: int>
+  movie.<media attributes | director: str | publisher: str | genre: str |
+        duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
   checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
@@ -339,21 +335,17 @@ def format_entry(entry: tuple[any]) -> str:
 
 
 class Client:
-    def __init__(self, cursor: psycopg.Cursor, account_id: str=-1, access_level: int=3) -> None:
+    def __init__(self, cursor: psycopg.Cursor, account_id: int = -1, access_level: int = 3) -> None:
         self.cursor: psycopg.Cursor = cursor
         self.account_id: int = account_id
         self.access_level: int = access_level
 
-
     def check_permissions(self, required_access_level: int) -> None:
         if self.access_level > required_access_level:
-            print("Permission denied")
+            print(f"Permission denied (Requires access level {required_access_level})")
             exit(1)
 
-
     def new_id(self, source_table: str) -> int:
-        new_id = None
-
         for _ in range(ADD_RETRIES):
             try:
                 new_id = random.randrange(POSTGRES_MAX_INTEGER_SIZE + 1)
@@ -391,7 +383,6 @@ class Client:
         print("Out of media slots")
         exit(1)
 
-
     def new_user(self, username: str, email: str, password: str) -> int:
         user_id = self.new_id("user_data")
         creation_time_posix = time_posix()
@@ -402,7 +393,6 @@ class Client:
         )
 
         return user_id
-
 
     def new_media(self, title: str, release_year: str) -> int:
         self.check_permissions(ADMIN_ACCESS_LEVEL)
@@ -417,7 +407,6 @@ class Client:
 
         return media_id
 
-
     def new_book(self, title: str, release_year: str, author: str, publisher: str, isbn: str) -> int:
         book_id = self.new_media(title, release_year)
 
@@ -428,8 +417,8 @@ class Client:
 
         return book_id
 
-
-    def new_movie(self, title: str, release_year: str, director: str, publisher: str, genre: str, duration_seconds: str) -> int:
+    def new_movie(self, title: str, release_year: str, director: str, publisher: str, genre: str,
+                  duration_seconds: str) -> int:
         movie_id = self.new_media(title, release_year)
 
         self.cursor.execute(
@@ -439,8 +428,8 @@ class Client:
 
         return movie_id
 
-
-    def new_music(self, title: str, release_year: str, artist: str, album: str, genre: str, duration_seconds: str) -> int:
+    def new_music(self, title: str, release_year: str, artist: str, album: str, genre: str,
+                  duration_seconds: str) -> int:
         music_id = self.new_media(title, release_year)
 
         self.cursor.execute(
@@ -449,7 +438,6 @@ class Client:
         )
 
         return music_id
-
 
     def add(self, *args: str) -> None:
         if args[1] == "--help":
@@ -480,8 +468,8 @@ class Client:
                 case "media":
                     print(self.new_media(*values["tuple"]), *[repr(v) for v in values["tuple"]])
 
-
-    def query_database(self, table: str, column: str, operator: str, query: str, show_checked_out: bool=False) -> list[tuple]:
+    def query_database(self, table: str, column: str, operator: str, query: str, show_checked_out: bool = False) -> \
+            list[tuple]:
         formatted_query = None
         match operator:
             case ":":
@@ -525,7 +513,6 @@ class Client:
 
         return self.cursor.fetchall()
 
-
     def formatted_search(self, *queries: str) -> list[tuple]:
         queries = list(queries)
 
@@ -556,7 +543,6 @@ class Client:
                 del queries[show_all_index]
                 self.check_permissions(ADMIN_ACCESS_LEVEL)
 
-
         intersection = False
         intersection_index = queries.index("--intersection") if "--intersection" in queries else -1
         intersection_index = queries.index("-i") if intersection_index == -1 and "-i" in queries else intersection_index
@@ -567,7 +553,8 @@ class Client:
 
         show_checked_out = False
         show_checked_out_index = queries.index("--show-checked-out") if "--show-checked-out" in queries else -1
-        show_checked_out_index = queries.index("-s") if show_checked_out_index == -1 and "-s" in queries else show_checked_out_index
+        show_checked_out_index = queries.index(
+            "-s") if show_checked_out_index == -1 and "-s" in queries else show_checked_out_index
 
         if show_checked_out_index != -1:
             show_checked_out = True
@@ -587,8 +574,9 @@ class Client:
             values["table"] = TABLE_MAPPING[values["table"]]
             values["column"] = COLUMN_MAPPING[values["column"]]
 
-            if ((values["table"] == "user_data" and values["column"] == "id") or values["column"] == "user_id") and values["query"] != str(self.account_id):
-                print("Permission denied")
+            if ((values["table"] == "user_data" and values["column"] == "id") or values["column"] == "user_id") and \
+                    values["query"] != str(self.account_id):
+                print("Permission denied. Cannot search for other users.")
                 exit(1)
 
             if values["column"] == "password":
@@ -598,7 +586,8 @@ class Client:
             if values["table"] == "full_renting":
                 self.check_permissions(ADMIN_ACCESS_LEVEL)
 
-            result = set(self.query_database(values["table"], values["column"], values["operation"], values["query"], show_checked_out))
+            result = set(self.query_database(values["table"], values["column"], values["operation"], values["query"],
+                                             show_checked_out))
 
             if output != set() and intersection:
                 output = output.intersection(result)
@@ -606,7 +595,6 @@ class Client:
                 output = output.union(result)
 
         return sorted(list(output))
-
 
     def search(self, *args: str) -> None:
         if args[1] == "--help":
@@ -623,7 +611,6 @@ class Client:
 
             print(format_entry(result))
 
-
     def checkout(self, *args: str) -> None:
         if args[1] == "--help":
             print(HELP["CHECKOUT"])
@@ -636,7 +623,7 @@ class Client:
         for i, result in enumerate(checkout_queue):
             print(f"{i}\t{result}")
 
-        if input("Do you want to check out this media [y/n] ") != "y":
+        if input("Do you want to check out this media [y/n] ").casefold() not in ("y", "yes"):
             exit(1)
 
         for result in checkout_queue:
@@ -648,9 +635,9 @@ class Client:
 
             self.cursor.execute(
                 "UPDATE renting SET user_id = %s, media_id = %s, start_time_posix = %s, end_time_posix = %s, time_returned_posix = %s WHERE id = %s;",
-                (self.account_id, result[0], checkout_time, checkout_time + RETURN_TIME_SECONDS, POSTGRES_MAX_BIGINT_SIZE, renting_id)
+                (self.account_id, result[0], checkout_time, checkout_time + RETURN_TIME_SECONDS,
+                 POSTGRES_MAX_BIGINT_SIZE, renting_id)
             )
-
 
     def remove(self, *args: str) -> None:
         if args[1] == "--help":
@@ -670,7 +657,7 @@ class Client:
 
             print(format_entry(result))
 
-        if input("Do you want to remove these entries? [y/n] ") != "y":
+        if input("Do you want to remove these entries? [y/n] ").casefold() not in ("y", "yes"):
             exit(1)
 
         for result in deletion_queue:
@@ -679,7 +666,6 @@ class Client:
 
             else:
                 self.cursor.execute("DELETE FROM user_data WHERE id = %s;", (result[0],))
-
 
     def return_media(self, *args: str) -> None:
         if args[1] == "--help":
@@ -698,10 +684,10 @@ class Client:
 
             print(format_entry(result))
 
-        if input("Do you want to return this media [y/n] ") != "y":
+        if input("Do you want to return this media [y/n] ").casefold() not in ("y", "yes"):
             exit(1)
 
-        for result in return_queue:
+        for _ in return_queue:
             renting_id = self.new_id("renting")
 
             self.cursor.execute(
@@ -709,13 +695,14 @@ class Client:
                 (return_time, renting_id)
             )
 
-
     def set_value(self, operations: str, *args: str) -> None:
         if args[1] == "--help":
             print(HELP["SET"])
             exit()
 
-        if args != ["account"] and sorted(args) != ["--intersection", "account"] and sorted(args) != ["-i", "account"] and sorted(args) != ["--intersection", "-i", "account"]:
+        if args != ["account"] and sorted(args) != ["--intersection", "account"] and sorted(args) != ["-i",
+                                                                                                      "account"] and sorted(
+            args) != ["--intersection", "-i", "account"]:
             self.check_permissions(ADMIN_ACCESS_LEVEL)
 
         selected_tuple = self.formatted_search(*args[1:-1], "--show-checked-out")
@@ -728,7 +715,7 @@ class Client:
 
         print(format_entry(selected_tuple))
 
-        if input("Do you want to modify this entry [y/n] ") != "y":
+        if input("Do you want to modify this entry [y/n] ").casefold() not in ("y", "yes"):
             exit(1)
 
         for o in operations.split(";"):
@@ -750,7 +737,6 @@ class Client:
             )
 
             self.cursor.execute(formatted_query.as_string())
-
 
     def main(self, *args: str) -> None:
         try:
@@ -780,7 +766,7 @@ class Client:
                     return
 
                 case _:
-                    print("Invalid command")
+                    print(f"Unrecognized command {repr(args[1])}")
                     return
 
         except IndexError:
@@ -794,7 +780,7 @@ class Client:
         except ValueError:
             pass
 
-        print(f"Invalid input\tTry '{args[0]} {args[1]} --help' for more information.")
+        print(f"Invalid input\nTry '{args[0]} {args[1]} --help' for more information.")
         exit(1)
 
 
@@ -804,23 +790,26 @@ def check_login(cursor: psycopg.Cursor, args: list[str]) -> any:
         "email": args.index("--email") if "--email" in args else -1,
         "password": args.index("--password") if "--password" in args else -1
     }
-    args_index["username"] = args.index("-u") if "-u" in args and args_index["username"] == -1 else args_index["username"]
+    args_index["username"] = args.index("-u") if "-u" in args and args_index["username"] == -1 else args_index[
+        "username"]
     args_index["email"] = args.index("-e") if "-e" in args and args_index["email"] == -1 else args_index["email"]
-    args_index["password"] = args.index("-p") if "-p" in args and args_index["password"] == -1 else args_index["password"]
+    args_index["password"] = args.index("-p") if "-p" in args and args_index["password"] == -1 else args_index[
+        "password"]
 
     if args_index["username"] == -1 and args_index["email"] == -1 and args_index["password"] == -1:
         return
 
     if (args_index["username"] != -1 or args_index["email"] != -1) and args_index["password"] == -1:
-        print("Invalid login")
+        print("Invalid login. Missing --password or -p")
         exit(1)
 
+
     cursor.execute("SELECT * FROM user_data WHERE (username = %s OR email = %s) AND password = %s;",
-        (args[args_index["username"] + 1], args[args_index["email"] + 1], args[args_index["password"] + 1])
-    )
+                   (args[args_index["username"] + 1], args[args_index["email"] + 1], args[args_index["password"] + 1])
+                   )
     account = cursor.fetchone()
 
-    if account == None:
+    if account is None:
         print("Invalid login")
         exit(1)
 
@@ -841,8 +830,10 @@ def check_login(cursor: psycopg.Cursor, args: list[str]) -> any:
 def main(*args: str) -> None:
     args = list(args)
 
+    invalid_message = f"Invalid input\nTry '{args[0]} --help' for more information."
+
     if len(args) <= 1:
-        print(f"Invalid input\tTry '{args[0]} --help' for more information.")
+        print(invalid_message)
         exit(1)
 
     if args[1] == "--help":
@@ -860,24 +851,46 @@ def main(*args: str) -> None:
 
         exit()
 
-    with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
-        with conn.cursor() as cur:
+    try:
+        with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER}") as conn:
+            with conn.cursor() as cur:
 
-            account = check_login(cur, args)
+                account = check_login(cur, args)
 
-            if account != None:
-                client = Client(cur, account[0], account[4])
+                if account is not None:
+                    client = Client(cur, account[0], account[4])
 
-            else:
-                client = Client(cur)
+                else:
+                    client = Client(cur)
 
-            if len(args) <= 1:
-                print(f"Invalid input\tTry '{args[0]} --help' for more information.")
-                exit(1)
+                if len(args) <= 1:
+                    print(invalid_message)
+                    exit(1)
 
-            client.main(*args)
+                client.main(*args)
 
-            conn.commit()
+                conn.commit()
+    except psycopg.errors.OperationalError as e:
+        if "no password supplied" in str(e):
+            db_password = getpass.getpass("PostgreSQL Password: ")
+            with psycopg.connect(f"dbname={DATABASE_NAME} user={DATABASE_USER} password={db_password}") as conn:
+                with conn.cursor() as cur:
+
+                    account = check_login(cur, args)
+
+                    if account is not None:
+                        client = Client(cur, account[0], account[4])
+
+                    else:
+                        client = Client(cur)
+
+                    if len(args) <= 1:
+                        print(invalid_message)
+                        exit(1)
+
+                    client.main(*args)
+
+                    conn.commit()
 
 
 if __name__ == "__main__":
