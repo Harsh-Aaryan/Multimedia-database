@@ -96,69 +96,51 @@ CREATE VIEW full_music AS
 --2 user
 --3 viewer only
 
-INSERT INTO user_data (id, username, email, password, access_level) VALUES
-    (0, 'root', 'root@localhost.com', 'rootpass123', 0);
-
--- admin
-INSERT INTO user_data (id, username, email, password, access_level) VALUES
-    (1, 'admin', 'admin@localhost.com', 'adminpass123', 1),
-    (2, 'ad', 'ad@localhost.com', 'adpass123', 1);
-
--- user
-INSERT INTO user_data (id, username, email, password, access_level) VALUES
-    (3, 'user', 'user@localhost.com', 'userpass123', 2),
-    (4, 'bob', 'bob@localhost.com', 'bobpass123', 2),
-    (5, 'joe', 'joe@localhost.com', 'joepass123', 2);
-
---viewe
-INSERT INTO user_data (id, username, email, password, access_level) VALUES
-    (6, 'viewer', 'viewer@localhost.com', 'viewerpass123', 3);
-
 --book
-INSERT INTO media (id, time_added_posix, title, release_year) VALUES
-    (200,1678991,'harry potter',1997),
-    (201,1678992,'harry potter 2',1998),
-    (202,1678993,'Dune',1984),
-    (204,1678994, '1984', 1949);
+-- INSERT INTO media (id, time_added_posix, title, release_year) VALUES
+--     (200,1678991,'harry potter',1997),
+--     (201,1678992,'harry potter 2',1998),
+--     (202,1678993,'Dune',1984),
+--     (204,1678994, '1984', 1949);
 
--- book infoo
-INSERT INTO book (media_id, author, publisher, isbn) VALUES
-    (200, 'JK Rowling', 'Bloomsbury', '978-3-16-148410-0'),
-    (201, 'JK Rowling', 'Bloomsbury', '978-3-15-148410-1'),
-    (202, 'Frank Herbert', 'randomred', '978-5-16-148410-2'),
-    (204, 'George Orwell', 'Penguin', '978-4-16-148410-4');
+-- -- book infoo
+-- INSERT INTO book (media_id, author, publisher, isbn) VALUES
+--     (200, 'JK Rowling', 'Bloomsbury', '978-3-16-148410-0'),
+--     (201, 'JK Rowling', 'Bloomsbury', '978-3-15-148410-1'),
+--     (202, 'Frank Herbert', 'randomred', '978-5-16-148410-2'),
+--     (204, 'George Orwell', 'Penguin', '978-4-16-148410-4');
 
---movie
-INSERT INTO media (id, time_added_posix, title, release_year) VALUES
-    (300,1678997,'the lord of the rings',1997),
-    (301,1678998,'star wars',1998),
-    (302,1687998,'matrix',1999),
-    (304,1687999, 'star trek', 1979);
+-- --movie
+-- INSERT INTO media (id, time_added_posix, title, release_year) VALUES
+--     (300,1678997,'the lord of the rings',1997),
+--     (301,1678998,'star wars',1998),
+--     (302,1687998,'matrix',1999),
+--     (304,1687999, 'star trek', 1979);
 
--- movie info
-INSERT INTO movie (media_id, director, publisher, genre, duration_seconds) VALUES
-    (300, 'Peter Jackson', 'Sony', 'Fantasy', 180),
-    (301, 'George Lucas', 'Disney', 'Fantasy', 180),
-    (302, 'Lana Wachowski', 'Sony', 'Fantasy', 180),
-    (304, 'James Cameron', 'Sony', 'Fantasy', 180);
+-- -- movie info
+-- INSERT INTO movie (media_id, director, publisher, genre, duration_seconds) VALUES
+--     (300, 'Peter Jackson', 'Sony', 'Fantasy', 180),
+--     (301, 'George Lucas', 'Disney', 'Fantasy', 180),
+--     (302, 'Lana Wachowski', 'Sony', 'Fantasy', 180),
+--     (304, 'James Cameron', 'Sony', 'Fantasy', 180);
 
---music
-INSERT INTO media (id, time_added_posix, title, release_year) VALUES
-    (400,1678999,'Graduation',2007),
-    (401,1678990,'Donda',2022),
-    (402,6789991,'A head full of dreams',2015);
+-- --music
+-- INSERT INTO media (id, time_added_posix, title, release_year) VALUES
+--     (400,1678999,'Graduation',2007),
+--     (401,1678990,'Donda',2022),
+--     (402,6789991,'A head full of dreams',2015);
 
--- music info
-INSERT INTO music (media_id, artist, album, genre, duration_seconds) VALUES
-    (400, 'Kanye West', 'Graduation', 'Rap', 180),
-    (401, 'Kanye West', 'Donda', 'Rap', 180),
-   (402, 'Coldplay', 'A head full of dreams', 'Pop', 180);
+-- -- music info
+-- INSERT INTO music (media_id, artist, album, genre, duration_seconds) VALUES
+--     (400, 'Kanye West', 'Graduation', 'Rap', 180),
+--     (401, 'Kanye West', 'Donda', 'Rap', 180),
+--    (402, 'Coldplay', 'A head full of dreams', 'Pop', 180);
 
--- need rental data
-INSERT INTO renting (id, user_id, media_id, start_time_posix, end_time_posix, time_returned_posix) VALUES
+-- -- need rental data
+-- INSERT INTO renting (id, user_id, media_id, start_time_posix, end_time_posix, time_returned_posix) VALUES
 
-    (1, 3, 200, 1699987200, 1702579200, 1700592000),
-    (2, 4, 201, 1699987200, 1702579200, 9223372036854775807),
-    (4, 3, 204, 1696291200, 1698883200, 9223372036854775807),
-    (5, 4, 300, 1699987200, 1702579200, 1700592000),
-    (6, 5, 301, 1699987200, 1702579200, 9223372036854775807);
+--     (1, 3, 200, 1699987200, 1702579200, 1700592000),
+--     (2, 4, 201, 1699987200, 1702579200, 9223372036854775807),
+--     (4, 3, 204, 1696291200, 1698883200, 9223372036854775807),
+--     (5, 4, 300, 1699987200, 1702579200, 1700592000),
+--     (6, 5, 301, 1699987200, 1702579200, 9223372036854775807);
