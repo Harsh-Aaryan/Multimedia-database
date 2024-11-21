@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
 
-COMMAND='./cli/main.py -u root -p password add'
+COMMAND='./cli/main.py'
+ADD_COMMAND="$COMMAND -u root -p password add"
 
 echo "Adding books..."
-$COMMAND \
+$ADD_COMMAND \
 'book=Harry Potter;1997;JK Rowling;Bloomsbury;978-0-59-035342-7' \
 'book=Harry Potter 2;1998;JK Rowling;Bloomsbury;978-1-33-887893-6' \
 'book=Dune;1965;Frank Herbert;Chilton Book Company;978-0-44-117271-9' \
@@ -22,7 +23,7 @@ $COMMAND \
 'book=The Road;2006;Cormac McCarthy;Alfred A. Knopf;978-0-30-738789-9'
 
 echo "Adding movies..."
-$COMMAND \
+$ADD_COMMAND \
 'movie=The Lord of the Rings: The Fellowship of the Ring;2001;Peter Jackson;publisher;Fantasy;178' \
 'movie=Star Wars: A New Hope;1977;George Lucas;publisher;Fantasy;121' \
 'movie=The Matrix;1999;Lana Wachowski;publisher;Fantasy;136' \
@@ -40,7 +41,7 @@ $COMMAND \
 'movie=The Avengers;2012;Joss Whedon;publisher;Action;143'
 
 echo "Adding music..."
-$COMMAND \
+$ADD_COMMAND \
 'music=Graduation;2007;Kanye West;Graduation;Rap;226' \
 'music=A Head Full of Dreams;2015;Coldplay;A Head Full of Dreams;Pop;224' \
 'music=Bohemian Rhapsody;1975;Queen;A Night at the Opera;Rock;354' \
@@ -56,7 +57,7 @@ $COMMAND \
 'music=Shallow;2018;Lady Gaga & Bradley Cooper;A Star Is Born;Pop;215'
 
 echo "Adding accounts..."
-$COMMAND \
+$ADD_COMMAND \
 'account=joe345;jdog@email.com;password123' \
 'account=banana_slayer;banana@email.com;BananasAr3Th3B3st' \
 'account=jane678;jcat@email.com;password456' \
@@ -65,3 +66,10 @@ $COMMAND \
 'account=dragon_hunter;dragonlord@email.com;DragonSlay2024' \
 'account=pizza_lover;pizzatime@email.com;CheesePizzaRox' \
 'account=galaxy_rider;star@email.com;ToTheStars99'
+
+echo "Checking out media to users..."
+$COMMAND -u joe345 -p password123 checkout -y "book.author=George Orwell"
+$COMMAND -u banana_slayer -p BananasAr3Th3B3st checkout -y "book.title:Fellowship"
+$COMMAND -u pizza_lover -p CheesePizzaRox checkout -y "music.title=Thriller"
+$COMMAND -u dragon_hunter -p DragonSlay2024 checkout -y "movie.title=Interstellar"
+$COMMAND -u dragon_hunter -p DragonSlay2024 checkout -y "movie.director=Joss Whedon"
