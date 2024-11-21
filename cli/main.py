@@ -17,7 +17,7 @@ ROOT_ACCESS_LEVEL = 0
 ADD_RETRIES = 20
 
 TABLE_MAPPING = {
-    "account": "user_data",
+    "account": "full_user",
     "book": "full_book",
     "checked-out": "full_renting",
     "media": "media",
@@ -41,6 +41,7 @@ COLUMN_MAPPING = {
     "id": "id",
     "isbn": "isbn",
     "media-id": "media_id",
+    "overdue-media": "overdue_media",
     "password": "password",
     "publisher": "publisher",
     "release-year": "release_year",
@@ -49,20 +50,27 @@ COLUMN_MAPPING = {
     "username": "username"
 }
 
-USER_TABLE = "username\temail\taccess-level"
+USER_TABLE = "username\temail\taccess-level\toverdue-media"
 MEDIA_TABLE = "id\tdate-added\ttitle\trelease-year"
 BOOK_TABLE = f"{MEDIA_TABLE}\tauthor\tpublisher\tisbn"
 MOVIE_TABLE = f"{MEDIA_TABLE}\tdirector\tpublisher\tgenre\tduration-seconds"
 MUSIC_TABLE = f"{MEDIA_TABLE}\tartist\tpublisher\talbum\tgenre\tduration-seconds"
 RENTING_TABLE = f"id\tdate-checked-out\tdate-due\ttime-returned\tusername\temail\tmedia-id\tdate-added\ttitle\trelease-year"
 
+USER_WIDTH = 6
+MEDIA_WIDTH = 4
+BOOK_WIDTH = 7
+MOVIE_WIDTH = 8
+MUSIC_WIDTH = 9
+RENTING_WIDTH = 11
+
 COLUMNS = {
-    5: USER_TABLE,
-    4: MEDIA_TABLE,
-    7: BOOK_TABLE,
-    8: MOVIE_TABLE,
-    9: MUSIC_TABLE,
-    11: RENTING_TABLE
+    USER_WIDTH: USER_TABLE,
+    MEDIA_WIDTH: MEDIA_TABLE,
+    BOOK_WIDTH: BOOK_TABLE,
+    MOVIE_WIDTH: MOVIE_TABLE,
+    MUSIC_WIDTH: MUSIC_TABLE,
+    RENTING_WIDTH: RENTING_TABLE
 }
 
 OPERATORS = [   #   Python; SQL
@@ -287,8 +295,9 @@ def time_posix() -> int:
     return int(time.time())
 
 
-def format_user_data(user_data_entry: tuple[any]) -> str:
-    return f"{user_data_entry[1]}\t{user_data_entry[2]}\t{user_data_entry[4]}"
+def format_user_data(user_entry: tuple[any]) -> str:
+    user_entry = [str(v) for v in user_entry[:3] + user_entry[4:]]
+    return "\t".join(user_entry)
 
 
 def format_media(media_entry: tuple[any]) -> str:
@@ -318,7 +327,7 @@ def format_renting(renting_entry: tuple[any]) -> str:
 
 def format_entry(entry: tuple[any]) -> str:
     match len(entry):
-        case 5:
+        case 6:
             return format_user_data(entry)
 
         case 4:
@@ -575,7 +584,7 @@ class Client:
             values["table"] = TABLE_MAPPING[values["table"]]
             values["column"] = COLUMN_MAPPING[values["column"]]
 
-            if ((values["table"] == "user_data" and values["column"] == "id") or values["column"] == "user_id") and \
+            if ((values["table"] == "full_user" and values["column"] == "id") or values["column"] == "user_id") and \
                     values["query"] != str(self.account_id):
                 print("Permission denied. Cannot search for other users.")
                 exit(1)
@@ -633,7 +642,7 @@ class Client:
             exit(1)
 
         for result in checkout_queue:
-            if len(result) == 5:
+            if len(result) == USER_WIDTH:
                 print(f"Can't checkout account")
                 continue
 

@@ -75,7 +75,7 @@ CREATE VIEW total_overdue_media AS
 ;
 
 CREATE VIEW full_user AS
-    SELECT u.id, u.username, u.email, u.password, u.access_level, coalesce(t.overdue_media, 0) AS overdue_media
+    SELECT u.id, u.username, u.email, u.password, u.access_level, COALESCE(t.overdue_media, 0) AS overdue_media
     FROM user_data AS u LEFT JOIN total_overdue_media AS t ON u.id = t.user_id
 ;
 
