@@ -7,7 +7,7 @@ import time
 import psycopg
 
 RETURN_TIME_DAYS = 30
-RETURN_TIME_SECONDS = 60 * 60 * 24 * RETURN_TIME_DAYS
+RETURN_TIME_SECONDS = 30 #60 * 60 * 24 * RETURN_TIME_DAYS
 
 VIEWER_ACCESS_LEVEL = 3
 USER_ACCESS_LEVEL = 2
@@ -17,7 +17,7 @@ ROOT_ACCESS_LEVEL = 0
 ADD_RETRIES = 20
 
 TABLE_MAPPING = {
-    "account": "user_data",
+    "account": "full_user",
     "book": "full_book",
     "checked-out": "full_renting",
     "media": "media",
@@ -41,6 +41,7 @@ COLUMN_MAPPING = {
     "id": "id",
     "isbn": "isbn",
     "media-id": "media_id",
+    "overdue-media": "overdue_media",
     "password": "password",
     "publisher": "publisher",
     "release-year": "release_year",
@@ -49,20 +50,27 @@ COLUMN_MAPPING = {
     "username": "username"
 }
 
-USER_TABLE = "username\temail\taccess-level"
+USER_TABLE = "username\temail\taccess-level\toverdue-media"
 MEDIA_TABLE = "id\tdate-added\ttitle\trelease-year"
 BOOK_TABLE = f"{MEDIA_TABLE}\tauthor\tpublisher\tisbn"
 MOVIE_TABLE = f"{MEDIA_TABLE}\tdirector\tpublisher\tgenre\tduration-seconds"
 MUSIC_TABLE = f"{MEDIA_TABLE}\tartist\tpublisher\talbum\tgenre\tduration-seconds"
 RENTING_TABLE = f"id\tdate-checked-out\tdate-due\ttime-returned\tusername\temail\tmedia-id\tdate-added\ttitle\trelease-year"
 
+USER_WIDTH = 6
+MEDIA_WIDTH = 4
+BOOK_WIDTH = 7
+MOVIE_WIDTH = 8
+MUSIC_WIDTH = 9
+RENTING_WIDTH = 11
+
 COLUMNS = {
-    5: USER_TABLE,
-    4: MEDIA_TABLE,
-    7: BOOK_TABLE,
-    8: MOVIE_TABLE,
-    9: MUSIC_TABLE,
-    11: RENTING_TABLE
+    USER_WIDTH: USER_TABLE,
+    MEDIA_WIDTH: MEDIA_TABLE,
+    BOOK_WIDTH: BOOK_TABLE,
+    MOVIE_WIDTH: MOVIE_TABLE,
+    MUSIC_WIDTH: MUSIC_TABLE,
+    RENTING_WIDTH: RENTING_TABLE
 }
 
 OPERATORS = [   #   Python; SQL
@@ -95,6 +103,7 @@ types and attributes:
 check out media from the database
 
 options:
+  -y, --yes                 skip user confirmation prompt
   -i, --intersection        use intersection of results instead of union of
                             results
   -s, --show-checked-out    show checked out media in results
@@ -153,6 +162,7 @@ commands:
 remove accounts and/or media from the database
 
 options:
+  -y, --yes                 skip user confirmation prompt
   -i, --intersection        use intersection of results instead of union of
                             results
   -s, --show-checked-out    show checked out media in results
@@ -165,7 +175,7 @@ aliases:
   overdue                   search overdue medial; requires -i
 
 types, attributes, and value types:
-  account.<username: str | email: str | access-level: int>
+  account.<username: str | email: str | access-level: int | overdue-media: int>
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
   movie.<media attributes | director: str | publisher: str | genre: str |
@@ -189,6 +199,7 @@ operators:
 return checked out media to the database; search -i is enabled
 
 options:
+  -y, --yes                 skip user confirmation prompt
   -s, --show-checked-out    show checked out media in results
 
 aliases:
@@ -228,7 +239,7 @@ aliases:
   overdue                   search overdue medial; requires -i
 
 types, attributes, and value types:
-  account.<username: str | email: str | access-level: int>
+  account.<username: str | email: str | access-level: int | overdue-media: int>
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
   movie.<media attributes | director: str | publisher: str | genre: str |
@@ -253,6 +264,7 @@ set values of specific accounts or media; multiple values can be updated at
 once, but only one account or media can be updated at a time
 
 options:
+  -y, --yes                 skip user confirmation prompt
   -i, --intersection        use intersection of results instead of union of
                             results
   -s, --show-checked-out    show checked out media in results
@@ -264,6 +276,7 @@ aliases:
   overdue                   search overdue medial; requires -i
 
 types, attributes, and value types:
+  account.<username: str | email: str | access-level: int | overdue-media: int>
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
   movie.<media attributes | director: str | publisher: str | genre: str |
@@ -287,8 +300,9 @@ def time_posix() -> int:
     return int(time.time())
 
 
-def format_user_data(user_data_entry: tuple[any]) -> str:
-    return f"{user_data_entry[1]}\t{user_data_entry[2]}\t{user_data_entry[4]}"
+def format_user_data(user_entry: tuple[any]) -> str:
+    user_entry = [str(v) for v in user_entry[1:3] + user_entry[4:]]
+    return "\t".join(user_entry)
 
 
 def format_media(media_entry: tuple[any]) -> str:
@@ -312,13 +326,13 @@ def format_music(music_entry: tuple[any]) -> str:
 
 
 def format_renting(renting_entry: tuple[any]) -> str:
-    renting_entry = [str(v) for v in renting_entry]
+    renting_entry = [str(v) for v in renting_entry[:4] + renting_entry[5:]]
     return "\t".join(renting_entry)
 
 
 def format_entry(entry: tuple[any]) -> str:
     match len(entry):
-        case 5:
+        case 6:
             return format_user_data(entry)
 
         case 4:
@@ -507,7 +521,7 @@ class Client:
         sql_command = formatted_query.as_string()
 
         if not show_checked_out and table in ["media", "full_book", "full_movie", "full_music"]:
-            sql_command = f"{sql_command[:-1]} AND NOT EXISTS (SELECT r.media_id FROM full_renting AS r WHERE m.id = r.media_id AND r.time_returned_posix = 9223372036854775807);"
+            sql_command = f"{sql_command[:-1]} AND NOT EXISTS (SELECT r.media_id FROM renting AS r WHERE m.id = r.media_id AND r.time_returned_posix = 9223372036854775807);"
 
         self.cursor.execute(sql_command)
 
@@ -524,6 +538,7 @@ class Client:
         if "checked-out" in queries:
             queries[queries.index("checked-out")] = "-i"
             queries.append(f"checked-out.user-id={self.account_id}")
+            queries.append(f"checked-out.date-returned={POSTGRES_MAX_BIGINT_SIZE}")
 
         if "overdue" in queries:
             queries[queries.index("overdue")] = "-i"
@@ -574,7 +589,7 @@ class Client:
             values["table"] = TABLE_MAPPING[values["table"]]
             values["column"] = COLUMN_MAPPING[values["column"]]
 
-            if ((values["table"] == "user_data" and values["column"] == "id") or values["column"] == "user_id") and \
+            if ((values["table"] == "full_user" and values["column"] == "id") or values["column"] == "user_id") and \
                     values["query"] != str(self.account_id):
                 print("Permission denied. Cannot search for other users.")
                 exit(1)
@@ -612,22 +627,37 @@ class Client:
             print(format_entry(result))
 
     def checkout(self, *args: str) -> None:
+        args = list(args)
+
         if args[1] == "--help":
             print(HELP["CHECKOUT"])
             exit()
+
+        autoconfirm = False
+        autoconfirm_index = args.index("--yes") if "--yes" in args else -1
+        autoconfirm_index = args.index("-y") if autoconfirm_index == -1 and "-y" in args else autoconfirm_index
+
+        if autoconfirm_index != -1:
+            autoconfirm = True
+            del args[autoconfirm_index]
 
         checkout_time = time_posix()
 
         checkout_queue = self.formatted_search(*args[1:])
 
-        for i, result in enumerate(checkout_queue):
-            print(f"{i}\t{result}")
+        previous_len = 0
+        for result in checkout_queue:
+            if len(result) != previous_len:
+                print(COLUMNS[len(result)])
+                previous_len = len(result)
 
-        if input("Do you want to check out this media [y/n] ").casefold() not in ("y", "yes"):
+            print(format_entry(result))
+
+        if not autoconfirm and input("Do you want to check out this media [y/n] ").casefold() not in ("y", "yes"):
             exit(1)
 
         for result in checkout_queue:
-            if len(result) == 5:
+            if len(result) == USER_WIDTH:
                 print(f"Can't checkout account")
                 continue
 
@@ -640,9 +670,19 @@ class Client:
             )
 
     def remove(self, *args: str) -> None:
+        args = list(args)
+
         if args[1] == "--help":
             print(HELP["REMOVE"])
             exit()
+
+        autoconfirm = False
+        autoconfirm_index = args.index("--yes") if "--yes" in args else -1
+        autoconfirm_index = args.index("-y") if autoconfirm_index == -1 and "-y" in args else autoconfirm_index
+
+        if autoconfirm_index != -1:
+            autoconfirm = True
+            del args[autoconfirm_index]
 
         if args != ["account"]:
             self.check_permissions(ADMIN_ACCESS_LEVEL)
@@ -657,20 +697,30 @@ class Client:
 
             print(format_entry(result))
 
-        if input("Do you want to remove these entries? [y/n] ").casefold() not in ("y", "yes"):
+        if not autoconfirm and input("Do you want to remove these entries? [y/n] ").casefold() not in ("y", "yes"):
             exit(1)
 
         for result in deletion_queue:
             if len(result) == 5:
-                self.cursor.execute("DELETE FROM media WHERE id = %s;", (result[0],))
-
-            else:
                 self.cursor.execute("DELETE FROM user_data WHERE id = %s;", (result[0],))
 
+            else:
+                self.cursor.execute("DELETE FROM media WHERE id = %s;", (result[0],))
+
     def return_media(self, *args: str) -> None:
+        args = list(args)
+
         if args[1] == "--help":
             print(HELP["RETURN"])
             exit()
+
+        autoconfirm = False
+        autoconfirm_index = args.index("--yes") if "--yes" in args else -1
+        autoconfirm_index = args.index("-y") if autoconfirm_index == -1 and "-y" in args else autoconfirm_index
+
+        if autoconfirm_index != -1:
+            autoconfirm = True
+            del args[autoconfirm_index]
 
         return_time = time_posix()
 
@@ -684,21 +734,29 @@ class Client:
 
             print(format_entry(result))
 
-        if input("Do you want to return this media [y/n] ").casefold() not in ("y", "yes"):
+        if not autoconfirm and input("Do you want to return this media [y/n] ").casefold() not in ("y", "yes"):
             exit(1)
 
-        for _ in return_queue:
-            renting_id = self.new_id("renting")
-
+        for result in return_queue:
             self.cursor.execute(
                 "UPDATE renting SET time_returned_posix = %s WHERE id = %s;",
-                (return_time, renting_id)
+                (return_time, result[0])
             )
 
     def set_value(self, operations: str, *args: str) -> None:
+        args = list(args)
+
         if args[1] == "--help":
             print(HELP["SET"])
             exit()
+
+        autoconfirm = False
+        autoconfirm_index = args.index("--yes") if "--yes" in args else -1
+        autoconfirm_index = args.index("-y") if autoconfirm_index == -1 and "-y" in args else autoconfirm_index
+
+        if autoconfirm_index != -1:
+            autoconfirm = True
+            del args[autoconfirm_index]
 
         if args != ["account"] and sorted(args) != ["--intersection", "account"] and sorted(args) != ["-i",
                                                                                                       "account"] and sorted(
@@ -715,7 +773,7 @@ class Client:
 
         print(format_entry(selected_tuple))
 
-        if input("Do you want to modify this entry [y/n] ").casefold() not in ("y", "yes"):
+        if not autoconfirm and input("Do you want to modify this entry [y/n] ").casefold() not in ("y", "yes"):
             exit(1)
 
         for o in operations.split(";"):
@@ -727,6 +785,10 @@ class Client:
 
             values["table"] = TABLE_MAPPING[values["table"]]
             values["column"] = COLUMN_MAPPING[values["column"]]
+
+            if values["column"] == "overdue_media" or values["column"] in ["id", "user_id"]:
+                print(f"Unable to modify {operations[:operations.index("=")]}")
+                exit(1)
 
             formatted_query = psycopg.sql.SQL("UPDATE {0} SET {1} = {2} WHERE id = {3};")
             formatted_query = formatted_query.format(
