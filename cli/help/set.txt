@@ -5,6 +5,7 @@ set values of specific accounts or media; multiple values can be updated at
 once, but only one account or media can be updated at a time
 
 options:
+  -y, --yes                 skip user confirmation prompt
   -i, --intersection        use intersection of results instead of union of
                             results
   -s, --show-checked-out    show checked out media in results
