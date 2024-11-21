@@ -64,3 +64,11 @@ python .\cli\main.py -u root -p password add `
 "account=dragon_hunter;dragonlord@email.com;DragonSlay2024" `
 "account=pizza_lover;pizzatime@email.com;CheesePizzaRox" `
 "account=galaxy_rider;star@email.com;ToTheStars99"
+
+# Checking out media to users
+Write-Host "Checking out media to users..."
+python .\cli\main.py -u joe345 -p password123 checkout -y "book.author=George Orwell"
+python .\cli\main.py -u banana_slayer -p BananasAr3Th3B3st checkout -y "book.title:Fellowship"
+python .\cli\main.py -u pizza_lover -p CheesePizzaRox checkout -y "music.title=Thriller"
+python .\cli\main.py -u dragon_hunter -p DragonSlay2024 checkout -y "movie.title=Interstellar"
+python .\cli\main.py -u dragon_hunter -p DragonSlay2024 checkout -y "movie.director=Joss Whedon"
