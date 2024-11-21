@@ -95,6 +95,7 @@ types and attributes:
 check out media from the database
 
 options:
+  -y, --yes                 skip user confirmation prompt
   -i, --intersection        use intersection of results instead of union of
                             results
   -s, --show-checked-out    show checked out media in results
@@ -153,6 +154,7 @@ commands:
 remove accounts and/or media from the database
 
 options:
+  -y, --yes                 skip user confirmation prompt
   -i, --intersection        use intersection of results instead of union of
                             results
   -s, --show-checked-out    show checked out media in results
@@ -189,6 +191,7 @@ operators:
 return checked out media to the database; search -i is enabled
 
 options:
+  -y, --yes                 skip user confirmation prompt
   -s, --show-checked-out    show checked out media in results
 
 aliases:
@@ -253,6 +256,7 @@ set values of specific accounts or media; multiple values can be updated at
 once, but only one account or media can be updated at a time
 
 options:
+  -y, --yes                 skip user confirmation prompt
   -i, --intersection        use intersection of results instead of union of
                             results
   -s, --show-checked-out    show checked out media in results
