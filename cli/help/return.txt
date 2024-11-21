@@ -4,6 +4,7 @@ usage: ./cli/main.py [main options] return [options] <aliases> [<type>.
 return checked out media to the database; search -i is enabled
 
 options:
+  -y, --yes                 skip user confirmation prompt
   -s, --show-checked-out    show checked out media in results
 
 aliases:
