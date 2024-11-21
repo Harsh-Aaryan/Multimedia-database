@@ -39,15 +39,12 @@ $COMMAND \
 'movie=Mad Max: Fury Road;2015;George Miller;Action;120' \
 'movie=The Avengers;2012;Joss Whedon;Action;143'
 
-#music=<title>;<release-year>;<artist>;<album>;<genre>;<duration-seconds>
-
 $COMMAND \
 'music=Graduation;2007;Kanye West;Graduation;Rap;226' \
-'music=Donda;2021;Kanye West;Donda;Rap;4782' \
 'music=A Head Full of Dreams;2015;Coldplay;A Head Full of Dreams;Pop;224' \
 'music=Bohemian Rhapsody;1975;Queen;A Night at the Opera;Rock;354' \
 'music=Hotel California;1976;Eagles;Hotel California;Rock;391' \
-'music=Shape of You;2017;Ed Sheeran;÷ (Divide);Pop;233' \
+'music=Shape of You;2017;Ed Sheeran;Divide;Pop;233' \
 'music=Blinding Lights;2019;The Weeknd;After Hours;Synthpop;200' \
 'music=Rolling in the Deep;2010;Adele;21;Soul;228' \
 'music=Smells Like Teen Spirit;1991;Nirvana;Nevermind;Grunge;301' \
