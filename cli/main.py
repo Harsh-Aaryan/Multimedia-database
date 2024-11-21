@@ -467,7 +467,7 @@ class Client:
             values["table"] = TABLE_MAPPING[values["table"]]
 
             match values["table"]:
-                case "user_data":
+                case "full_user":
                     print(self.new_user(*values["tuple"]), *[repr(v) for v in values["tuple"]])
 
                 case "full_book":
