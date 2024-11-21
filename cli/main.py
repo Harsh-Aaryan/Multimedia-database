@@ -742,6 +742,10 @@ class Client:
             values["table"] = TABLE_MAPPING[values["table"]]
             values["column"] = COLUMN_MAPPING[values["column"]]
 
+            if values["column"] == "overdue_media" or values["column"] in ["id", "user_id"]:
+                print(f"Unable to modify {operations[:operations.index("=")]}")
+                exit(1)
+
             formatted_query = psycopg.sql.SQL("UPDATE {0} SET {1} = {2} WHERE id = {3};")
             formatted_query = formatted_query.format(
                 psycopg.sql.Identifier(values["table"]),
