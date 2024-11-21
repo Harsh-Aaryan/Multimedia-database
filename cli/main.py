@@ -173,7 +173,7 @@ aliases:
   overdue                   search overdue medial; requires -i
 
 types, attributes, and value types:
-  account.<username: str | email: str | access-level: int>
+  account.<username: str | email: str | access-level: int | overdue-media: int>
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
   movie.<media attributes | director: str | publisher: str | genre: str |
@@ -236,7 +236,7 @@ aliases:
   overdue                   search overdue medial; requires -i
 
 types, attributes, and value types:
-  account.<username: str | email: str | access-level: int>
+  account.<username: str | email: str | access-level: int | overdue-media: int>
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
   movie.<media attributes | director: str | publisher: str | genre: str |
@@ -272,6 +272,7 @@ aliases:
   overdue                   search overdue medial; requires -i
 
 types, attributes, and value types:
+  account.<username: str | email: str | access-level: int | overdue-media: int>
   media.<id: int | title: str | release-year: int | date-added: int>
   book.<media attributes | author: str | publisher: str | isbn: str>
   movie.<media attributes | director: str | publisher: str | genre: str |
@@ -296,7 +297,7 @@ def time_posix() -> int:
 
 
 def format_user_data(user_entry: tuple[any]) -> str:
-    user_entry = [str(v) for v in user_entry[:3] + user_entry[4:]]
+    user_entry = [str(v) for v in user_entry[1:3] + user_entry[4:]]
     return "\t".join(user_entry)
 
 
