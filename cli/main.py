@@ -612,9 +612,19 @@ class Client:
             print(format_entry(result))
 
     def checkout(self, *args: str) -> None:
+        args = list(args)
+
         if args[1] == "--help":
             print(HELP["CHECKOUT"])
             exit()
+
+        autoconfirm = False
+        autoconfirm_index = args.index("--yes") if "--yes" in args else -1
+        autoconfirm_index = args.index("-y") if autoconfirm_index == -1 and "-y" in args else autoconfirm_index
+
+        if autoconfirm_index != -1:
+            autoconfirm = True
+            del args[autoconfirm_index]
 
         checkout_time = time_posix()
 
@@ -623,7 +633,7 @@ class Client:
         for i, result in enumerate(checkout_queue):
             print(f"{i}\t{result}")
 
-        if input("Do you want to check out this media [y/n] ").casefold() not in ("y", "yes"):
+        if not autoconfirm and input("Do you want to check out this media [y/n] ").casefold() not in ("y", "yes"):
             exit(1)
 
         for result in checkout_queue:
@@ -640,9 +650,19 @@ class Client:
             )
 
     def remove(self, *args: str) -> None:
+        args = list(args)
+
         if args[1] == "--help":
             print(HELP["REMOVE"])
             exit()
+
+        autoconfirm = False
+        autoconfirm_index = args.index("--yes") if "--yes" in args else -1
+        autoconfirm_index = args.index("-y") if autoconfirm_index == -1 and "-y" in args else autoconfirm_index
+
+        if autoconfirm_index != -1:
+            autoconfirm = True
+            del args[autoconfirm_index]
 
         if args != ["account"]:
             self.check_permissions(ADMIN_ACCESS_LEVEL)
@@ -657,7 +677,7 @@ class Client:
 
             print(format_entry(result))
 
-        if input("Do you want to remove these entries? [y/n] ").casefold() not in ("y", "yes"):
+        if not autoconfirm and input("Do you want to remove these entries? [y/n] ").casefold() not in ("y", "yes"):
             exit(1)
 
         for result in deletion_queue:
@@ -668,9 +688,19 @@ class Client:
                 self.cursor.execute("DELETE FROM user_data WHERE id = %s;", (result[0],))
 
     def return_media(self, *args: str) -> None:
+        args = list(args)
+
         if args[1] == "--help":
             print(HELP["RETURN"])
             exit()
+
+        autoconfirm = False
+        autoconfirm_index = args.index("--yes") if "--yes" in args else -1
+        autoconfirm_index = args.index("-y") if autoconfirm_index == -1 and "-y" in args else autoconfirm_index
+
+        if autoconfirm_index != -1:
+            autoconfirm = True
+            del args[autoconfirm_index]
 
         return_time = time_posix()
 
@@ -684,7 +714,7 @@ class Client:
 
             print(format_entry(result))
 
-        if input("Do you want to return this media [y/n] ").casefold() not in ("y", "yes"):
+        if not autoconfirm and input("Do you want to return this media [y/n] ").casefold() not in ("y", "yes"):
             exit(1)
 
         for _ in return_queue:
@@ -696,9 +726,19 @@ class Client:
             )
 
     def set_value(self, operations: str, *args: str) -> None:
+        args = list(args)
+
         if args[1] == "--help":
             print(HELP["SET"])
             exit()
+
+        autoconfirm = False
+        autoconfirm_index = args.index("--yes") if "--yes" in args else -1
+        autoconfirm_index = args.index("-y") if autoconfirm_index == -1 and "-y" in args else autoconfirm_index
+
+        if autoconfirm_index != -1:
+            autoconfirm = True
+            del args[autoconfirm_index]
 
         if args != ["account"] and sorted(args) != ["--intersection", "account"] and sorted(args) != ["-i",
                                                                                                       "account"] and sorted(
@@ -715,7 +755,7 @@ class Client:
 
         print(format_entry(selected_tuple))
 
-        if input("Do you want to modify this entry [y/n] ").casefold() not in ("y", "yes"):
+        if not autoconfirm and input("Do you want to modify this entry [y/n] ").casefold() not in ("y", "yes"):
             exit(1)
 
         for o in operations.split(";"):
