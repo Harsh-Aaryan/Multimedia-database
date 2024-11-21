@@ -67,23 +67,32 @@ CREATE TABLE music (
 );
 
 
-CREATE VIEW full_renting AS
-    SELECT r.id, r.start_time_posix, r.end_time_posix, r.time_returned_posix, u.username, u.email AS user_email, m.id AS media_id, m.time_added_posix, m.title, m.release_year
-    FROM user_data AS u JOIN renting AS r ON u.id = r.user_id JOIN media AS m ON r.media_id = m.id
+CREATE VIEW total_overdue_media AS
+    SELECT user_id, COUNT(user_id) AS overdue_media
+    FROM renting
+    WHERE (time_returned_posix != 9223372036854775807 AND time_returned_posix > end_time_posix) OR (time_returned_posix = 9223372036854775807 and end_time_posix < trunc(extract(epoch from now() )* 1000))
+    GROUP BY user_id
 ;
 
+CREATE VIEW full_user AS
+    SELECT u.id, u.username, u.email, u.password, u.access_level, COALESCE(t.overdue_media, 0) AS overdue_media
+    FROM user_data AS u LEFT JOIN total_overdue_media AS t ON u.id = t.user_id
+;
+
+CREATE VIEW full_renting AS
+    SELECT r.id, r.start_time_posix, r.end_time_posix, r.time_returned_posix, u.id AS user_id, u.username, u.email AS user_email, m.id AS media_id, m.time_added_posix, m.title, m.release_year
+    FROM user_data AS u JOIN renting AS r ON u.id = r.user_id JOIN media AS m ON r.media_id = m.id
+;
 
 CREATE VIEW full_book AS
     SELECT m.id, m.time_added_posix, m.title, m.release_year, b.author, b.publisher, b.isbn
     FROM media AS m JOIN book AS b ON m.id = b.media_id
 ;
 
-
 CREATE VIEW full_movie AS
     SELECT m.id, m.time_added_posix, m.title, m.release_year, o.director, o.publisher, o.genre, o.duration_seconds
     FROM media AS m JOIN movie AS o ON m.id = o.media_id
 ;
-
 
 CREATE VIEW full_music AS
     SELECT m.id, m.time_added_posix, m.title, m.release_year, u.artist, u.publisher, u.album, u.genre, u.duration_seconds
