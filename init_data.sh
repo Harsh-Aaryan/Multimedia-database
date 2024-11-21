@@ -23,21 +23,21 @@ $COMMAND \
 
 echo "Adding movies..."
 $COMMAND \
-'movie=The Lord of the Rings: The Fellowship of the Ring;2001;Peter Jackson;Fantasy;178' \
-'movie=Star Wars: A New Hope;1977;George Lucas;Fantasy;121' \
-'movie=The Matrix;1999;Lana Wachowski;Fantasy;136' \
-'movie=Star Wars: The Empire Strikes Back;1980;Irvin Kershner;Fantasy;124' \
-'movie=Star Trek: The Motion Picture;1979;Robert Wise;Fantasy;136' \
-'movie=Inception;2010;Christopher Nolan;Science Fiction;148' \
-'movie=Avatar;2009;James Cameron;Science Fiction;162' \
-'movie=Jurassic Park;1993;Steven Spielberg;Science Fiction;127' \
-'movie=The Dark Knight;2008;Christopher Nolan;Action;152' \
-'movie=Interstellar;2014;Christopher Nolan;Science Fiction;169' \
-'movie=Blade Runner;1982;Ridley Scott;Science Fiction;117' \
-'movie=Aliens;1986;James Cameron;Science Fiction;137' \
-'movie=The Terminator;1984;James Cameron;Science Fiction;107' \
-'movie=Mad Max: Fury Road;2015;George Miller;Action;120' \
-'movie=The Avengers;2012;Joss Whedon;Action;143'
+'movie=The Lord of the Rings: The Fellowship of the Ring;2001;Peter Jackson;publisher;Fantasy;178' \
+'movie=Star Wars: A New Hope;1977;George Lucas;publisher;Fantasy;121' \
+'movie=The Matrix;1999;Lana Wachowski;publisher;Fantasy;136' \
+'movie=Star Wars: The Empire Strikes Back;1980;Irvin Kershner;publisher;Fantasy;124' \
+'movie=Star Trek: The Motion Picture;1979;Robert Wise;publisher;Fantasy;136' \
+'movie=Inception;2010;Christopher Nolan;publisher;Science Fiction;148' \
+'movie=Avatar;2009;James Cameron;publisher;Science Fiction;162' \
+'movie=Jurassic Park;1993;Steven Spielberg;publisher;Science Fiction;127' \
+'movie=The Dark Knight;2008;Christopher Nolan;publisher;Action;152' \
+'movie=Interstellar;2014;Christopher Nolan;publisher;Science Fiction;169' \
+'movie=Blade Runner;1982;Ridley Scott;publisher;Science Fiction;117' \
+'movie=Aliens;1986;James Cameron;publisher;Science Fiction;137' \
+'movie=The Terminator;1984;James Cameron;publisher;Science Fiction;107' \
+'movie=Mad Max: Fury Road;2015;George Miller;publisher;Action;120' \
+'movie=The Avengers;2012;Joss Whedon;publisher;Action;143'
 
 echo "Adding music..."
 $COMMAND \

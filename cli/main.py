@@ -86,7 +86,7 @@ types and attributes:
   account=<username>;<email>;<password>
   media=<title>;<release-year>
   book=<title>;<release-year>;<author>;<publisher>;<isbn>
-  movie=<title>;<release-year>;<director>;<genre>;<duration>
+  movie=<title>;<release-year>;<director>;<publisher>;<genre>;<duration>
   music=<title>;<release-year>;<artist>;<album>;<genre>;<duration-seconds>""",
 
     "CHECKOUT": f"""usage: {sys.argv[0]} [main options] checkout [options] <aliases> [<type>.
@@ -456,13 +456,13 @@ class Client:
                 case "user_data":
                     print(self.new_user(*values["tuple"]), *[repr(v) for v in values["tuple"]])
 
-                case "book":
+                case "full_book":
                     print(self.new_book(*values["tuple"]), *[repr(v) for v in values["tuple"]])
 
-                case "movie":
+                case "full_movie":
                     print(self.new_movie(*values["tuple"]), *[repr(v) for v in values["tuple"]])
 
-                case "music":
+                case "full_music":
                     print(self.new_music(*values["tuple"]), *[repr(v) for v in values["tuple"]])
 
                 case "media":
