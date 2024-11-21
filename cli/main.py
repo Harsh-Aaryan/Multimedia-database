@@ -7,7 +7,7 @@ import time
 import psycopg
 
 RETURN_TIME_DAYS = 30
-RETURN_TIME_SECONDS = 60 * 60 * 24 * RETURN_TIME_DAYS
+RETURN_TIME_SECONDS = 30 #60 * 60 * 24 * RETURN_TIME_DAYS
 
 VIEWER_ACCESS_LEVEL = 3
 USER_ACCESS_LEVEL = 2
@@ -312,7 +312,7 @@ def format_music(music_entry: tuple[any]) -> str:
 
 
 def format_renting(renting_entry: tuple[any]) -> str:
-    renting_entry = [str(v) for v in renting_entry]
+    renting_entry = [str(v) for v in renting_entry[:4] + renting_entry[5:]]
     return "\t".join(renting_entry)
 
 
@@ -507,7 +507,7 @@ class Client:
         sql_command = formatted_query.as_string()
 
         if not show_checked_out and table in ["media", "full_book", "full_movie", "full_music"]:
-            sql_command = f"{sql_command[:-1]} AND NOT EXISTS (SELECT r.media_id FROM full_renting AS r WHERE m.id = r.media_id AND r.time_returned_posix = 9223372036854775807);"
+            sql_command = f"{sql_command[:-1]} AND NOT EXISTS (SELECT r.media_id FROM renting AS r WHERE m.id = r.media_id AND r.time_returned_posix = 9223372036854775807);"
 
         self.cursor.execute(sql_command)
 
@@ -524,6 +524,7 @@ class Client:
         if "checked-out" in queries:
             queries[queries.index("checked-out")] = "-i"
             queries.append(f"checked-out.user-id={self.account_id}")
+            queries.append(f"checked-out.date-returned={POSTGRES_MAX_BIGINT_SIZE}")
 
         if "overdue" in queries:
             queries[queries.index("overdue")] = "-i"
@@ -620,8 +621,13 @@ class Client:
 
         checkout_queue = self.formatted_search(*args[1:])
 
-        for i, result in enumerate(checkout_queue):
-            print(f"{i}\t{result}")
+        previous_len = 0
+        for result in checkout_queue:
+            if len(result) != previous_len:
+                print(COLUMNS[len(result)])
+                previous_len = len(result)
+
+            print(format_entry(result))
 
         if input("Do you want to check out this media [y/n] ").casefold() not in ("y", "yes"):
             exit(1)
@@ -687,12 +693,10 @@ class Client:
         if input("Do you want to return this media [y/n] ").casefold() not in ("y", "yes"):
             exit(1)
 
-        for _ in return_queue:
-            renting_id = self.new_id("renting")
-
+        for result in return_queue:
             self.cursor.execute(
                 "UPDATE renting SET time_returned_posix = %s WHERE id = %s;",
-                (return_time, renting_id)
+                (return_time, result[0])
             )
 
     def set_value(self, operations: str, *args: str) -> None:
