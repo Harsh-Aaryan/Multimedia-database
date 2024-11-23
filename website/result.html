@@ -126,18 +126,18 @@
     </div>
 
     <div class="search-bar">
-        <input type="text" placeholder="Article name or keywords...">
-        <select>
+        <input type="text" id="searchQuery" placeholder="Article name or keywords...">
+        <select id="categorySelect">
             <option value="">All categories</option>
             <option value="book">Books</option>
             <option value="movie">Movies</option>
             <option value="music">Music</option>
         </select>
-        <button>Search</button>
+        <button id="searchButton">Search</button>
     </div>
 
-    <div class="media-list">
-        <!-- Media items-->
+    <div class="media-list" id="mediaList">
+        <!-- Media items will be displayed here -->
     </div>
 
     <div class="pagination">
@@ -147,5 +147,38 @@
         <button>3</button>
         <button>Next &gt;</button>
     </div>
+
+    <script>
+        document.getElementById('searchButton').addEventListener('click', async function() {
+            const query = document.getElementById('searchQuery').value;
+            const category = document.getElementById('categorySelect').value;
+
+            // Perform the search via API
+            const response = await fetch(`http://localhost:3000/search?query=${query}&category=${category}`);
+            const data = await response.json();
+
+            // Display search results
+            const mediaList = document.getElementById('mediaList');
+            mediaList.innerHTML = ''; // Clear previous results
+
+            if (data.length === 0) {
+                mediaList.innerHTML = '<p>No results found.</p>';
+            } else {
+                data.forEach(item => {
+                    const mediaItem = document.createElement('div');
+                    mediaItem.classList.add('media-item');
+
+                    // Customize this based on your table structure
+                    mediaItem.innerHTML = `
+                        <h3>${item.title || item.name}</h3>
+                        <p>Author/Director/Artist: ${item.author || item.director || item.artist}</p>
+                        <p>Publisher: ${item.publisher}</p>
+                        <p>Genre: ${item.genre}</p>
+                    `;
+                    mediaList.appendChild(mediaItem);
+                });
+            }
+        });
+    </script>
 </body>
 </html>

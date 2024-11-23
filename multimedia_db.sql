@@ -171,3 +171,27 @@ INSERT INTO renting (id, user_id, media_id, start_time_posix, end_time_posix, ti
     (4, 3, 204, 1696291200, 1698883200, 9223372036854775807),
     (5, 4, 300, 1699987200, 1702579200, 1700592000),
     (6, 5, 301, 1699987200, 1702579200, 9223372036854775807);
+
+
+-- new sequence
+CREATE SEQUENCE user_data_id_seq;
+
+--  chnage id column 
+ALTER TABLE user_data
+    ALTER COLUMN id SET DEFAULT nextval('user_data_id_seq');
+
+-- max val
+SELECT setval('user_data_id_seq', (SELECT MAX(id) FROM user_data));
+
+-- new sequence 
+CREATE SEQUENCE book_media_id_seq;
+CREATE SEQUENCE movie_media_id_seq;
+CREATE SEQUENCE music_media_id_seq;
+
+-- table chnage 
+ALTER TABLE book ALTER COLUMN media_id SET DEFAULT nextval('book_media_id_seq');
+ALTER TABLE movie ALTER COLUMN media_id SET DEFAULT nextval('movie_media_id_seq');
+ALTER TABLE music ALTER COLUMN media_id SET DEFAULT nextval('music_media_id_seq');
+SELECT setval('book_media_id_seq', (SELECT MAX(media_id) FROM book));
+SELECT setval('movie_media_id_seq', (SELECT MAX(media_id) FROM movie));
+SELECT setval('music_media_id_seq', (SELECT MAX(media_id) FROM music));
