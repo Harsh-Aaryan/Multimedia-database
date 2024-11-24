@@ -15,7 +15,8 @@ aliases:
 
 types, attributes, and value types:
   account.<username: str | email: str | access-level: int | overdue-media: int>
-  media.<id: int | title: str | release-year: int | date-added: int>
+  media.<id: int | title: str | release-year: int | date-added: int>; dates,
+        excluding release year, are referenced in POSIX time
   book.<media attributes | author: str | publisher: str | isbn: str>
   movie.<media attributes | director: str | publisher: str | genre: str |
         duration-seconds: int>
@@ -23,7 +24,8 @@ types, attributes, and value types:
         duration-seconds: int>
   checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
               int | account attributes | media-id: int | title: str |
-              release-year: int | date-added: int>
+              release-year: int | date-added: int>; dates, excluding release
+              year, are referenced in POSIX time
 
 operators:
   :                         search for substring; not case sensetive; applies
