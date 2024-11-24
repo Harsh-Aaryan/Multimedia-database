@@ -98,3 +98,32 @@ CREATE VIEW full_music AS
     SELECT m.id, m.time_added_posix, m.title, m.release_year, u.artist, u.publisher, u.album, u.genre, u.duration_seconds
     FROM media AS m JOIN music AS u ON m.id = u.media_id
 ;
+
+--random data for bd populate
+--0 root
+--1 admin
+--2 user
+--3 viewer only
+
+-- new sequence
+CREATE SEQUENCE user_data_id_seq;
+
+--  chnage id column
+ALTER TABLE user_data
+    ALTER COLUMN id SET DEFAULT nextval('user_data_id_seq');
+
+-- max val
+SELECT setval('user_data_id_seq', (SELECT MAX(id) FROM user_data));
+
+-- new sequence
+CREATE SEQUENCE book_media_id_seq;
+CREATE SEQUENCE movie_media_id_seq;
+CREATE SEQUENCE music_media_id_seq;
+
+-- table chnage
+ALTER TABLE book ALTER COLUMN media_id SET DEFAULT nextval('book_media_id_seq');
+ALTER TABLE movie ALTER COLUMN media_id SET DEFAULT nextval('movie_media_id_seq');
+ALTER TABLE music ALTER COLUMN media_id SET DEFAULT nextval('music_media_id_seq');
+SELECT setval('book_media_id_seq', (SELECT MAX(media_id) FROM book));
+SELECT setval('movie_media_id_seq', (SELECT MAX(media_id) FROM movie));
+SELECT setval('music_media_id_seq', (SELECT MAX(media_id) FROM music));
