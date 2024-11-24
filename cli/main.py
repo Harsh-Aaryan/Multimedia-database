@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import getpass
 import random
+import re
 import sys
 import time
 
@@ -111,7 +112,6 @@ options:
                             account or higher
 
 aliases:
-  checked-out               search checked out media; requires -i
   overdue                   search overdue medial; requires -i
 
 types, attributes, and value types:
@@ -122,10 +122,6 @@ types, attributes, and value types:
         duration-seconds: int>
   music.<media attributes | artist: str | album: str | genre: str |
         duration-seconds: int>
-  checked-out.<id: int | date-checked-out: int | date-due: int | date-returned:
-              int | account attributes | media-id: int | title: str |
-              release-year: int | date-added: int>; dates, excluding release
-              year, are referenced in POSIX time
 
 operators:
   :                         search for substring; not case sensetive; applies
@@ -642,6 +638,11 @@ class Client:
         if args[1] == "--help":
             print(HELP["CHECKOUT"])
             exit()
+
+        for arg in args:
+            if re.search("$checked-out.*", arg) or arg in ["--show-checked-out", "-s"]:
+                print("Unable to check out already checked-out media")
+                exit(1)
 
         autoconfirm = False
         autoconfirm_index = args.index("--yes") if "--yes" in args else -1
