@@ -94,7 +94,7 @@ types and attributes:
   account=<username>;<email>;<password>
   media=<title>;<release-year>
   book=<title>;<release-year>;<author>;<publisher>;<isbn>
-  movie=<title>;<release-year>;<director>;<genre>;<duration>
+  movie=<title>;<release-year>;<director>;<publisher>;<genre>;<duration>
   music=<title>;<release-year>;<artist>;<album>;<genre>;<duration-seconds>""",
 
     "CHECKOUT": f"""usage: {sys.argv[0]} [main options] checkout [options] <aliases> [<type>.
@@ -467,16 +467,16 @@ class Client:
             values["table"] = TABLE_MAPPING[values["table"]]
 
             match values["table"]:
-                case "user_data":
+                case "full_user":
                     print(self.new_user(*values["tuple"]), *[repr(v) for v in values["tuple"]])
 
-                case "book":
+                case "full_book":
                     print(self.new_book(*values["tuple"]), *[repr(v) for v in values["tuple"]])
 
-                case "movie":
+                case "full_movie":
                     print(self.new_movie(*values["tuple"]), *[repr(v) for v in values["tuple"]])
 
-                case "music":
+                case "full_music":
                     print(self.new_music(*values["tuple"]), *[repr(v) for v in values["tuple"]])
 
                 case "media":
@@ -787,7 +787,7 @@ class Client:
             values["column"] = COLUMN_MAPPING[values["column"]]
 
             if values["column"] == "overdue_media" or values["column"] in ["id", "user_id"]:
-                print(f"Unable to modify {operations[:operations.index("=")]}")
+                print(f"Unable to modify {operations[:operations.index('=')]}")
                 exit(1)
 
             formatted_query = psycopg.sql.SQL("UPDATE {0} SET {1} = {2} WHERE id = {3};")
