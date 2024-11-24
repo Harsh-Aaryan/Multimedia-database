@@ -640,7 +640,7 @@ class Client:
             exit()
 
         for arg in args:
-            if re.search("$checked-out.*", arg) or arg in ["--show-checked-out", "-s"]:
+            if re.search("^checked-out.*", arg) != None or arg in ["--show-checked-out", "-s"]:
                 print("Unable to check out already checked-out media")
                 exit(1)
 
