@@ -94,7 +94,7 @@ types and attributes:
   account=<username>;<email>;<password>
   media=<title>;<release-year>
   book=<title>;<release-year>;<author>;<publisher>;<isbn>
-  movie=<title>;<release-year>;<director>;<publisher>;<genre>;<duration>
+  movie=<title>;<release-year>;<director>;<publisher>;<genre>;<duration-seconds>
   music=<title>;<release-year>;<artist>;<album>;<genre>;<duration-seconds>""",
 
     "CHECKOUT": f"""usage: {sys.argv[0]} [main options] checkout [options] <aliases> [<type>.
